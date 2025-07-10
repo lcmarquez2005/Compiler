@@ -1,3 +1,4 @@
+package Compiler;
 import java.util.*;
 
 public class LexicoBasico
