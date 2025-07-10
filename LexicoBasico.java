@@ -1,6 +1,6 @@
 package Compiler;
 import java.util.*;
-
+/*Mesale errores jajaja -Att Alison */
 public class LexicoBasico
 {
     static String linea = "38+2*3/6";
