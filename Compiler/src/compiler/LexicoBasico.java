@@ -3,6 +3,16 @@ package compiler;
 import java.util.*;
 
 /*Mesale errores jajaja -Att Alison */
+// Debe tener expresiones aritmeticas y algebraicaso
+// 5+3
+// a+b
+//  Ejemplo recomendado:
+// TOKEN	LEXEMA
+// TOKEN_NUMERO	38
+// TOKEN_PLUS	+
+// TOKEN_ASTERISCO	*
+// TOKEN_PAR_IZQ	(
+// TOKEN_PAR_DER	)
 public class LexicoBasico {
     static String linea = "38+2*3/6 2+2 (28+7)*2";
     // Usando delimitadores y regresandolos como tokens
