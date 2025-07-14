@@ -1,50 +1,60 @@
-package Compiler;
-import java.util.*;
-/*Mesale errores jajaja -Att Alison */
-public class LexicoBasico
-{
-    static String linea = "38+2*3/6";
-    //Usando delimitadores y regresandolos como tokens
-    static StringTokenizer tokens3 = new StringTokenizer(linea, "+-*/=", true);
-    static final int NUMERO=0;
-    static final int OPERADOR=1;
-    static String lexema="";
+package compiler;
 
-    public static int lexico()
-    {
+import java.util.*;
+
+/*Mesale errores jajaja -Att Alison */
+public class LexicoBasico {
+    static String linea = "38+2*3/6 2+2 (28+7)*2";
+    // Usando delimitadores y regresandolos como tokens
+    static StringTokenizer tokens3 = new StringTokenizer(linea, "\\d+|[+\\-*/=]|[(){}\\[\\],;]", true);
+    static final String NUMERO = "NUMERO";
+    static final String OPERADOR = "OPERADOR";
+    static final String PUNTUADOR = "PUNTUADOR";// serian (){}[] , ;
+    static String lexema = "";
+
+    public static String lexico() {
         if (tokens3.hasMoreTokens())
-            lexema=tokens3.nextToken().trim();
+            lexema = tokens3.nextToken().trim();
         else
-            lexema="";
-        
-        if (lexema.equals("+") || lexema.equals("-") || lexema.equals("*") || lexema.equals("/"))
+            lexema = "";
+
+        if (lexema.matches("\\+|\\-|\\*|/"))
             return OPERADOR;
+        else  
+        if (lexema.matches("\\(|\\)|\\[|\\]|\\{|\\}|\\|")) 
+            return PUNTUADOR;
         else
             return NUMERO;
     }
 
-    public static void main(String args[])
-    {
-        // Separación de tokens con StringTokenizer usando el espacio por defecto como separador de tokens
+    public static void main(String args[]) {
+        // Separación de tokens con StringTokenizer usando el espacio por defecto como
+        // separador de tokens
+        System.out.println("Tokens");
         StringTokenizer tokens = new StringTokenizer(linea);
-        while(tokens.hasMoreTokens())
+        while (tokens.hasMoreTokens())
             System.out.println(tokens.nextToken());
 
         System.out.println();
-        
-        //Usando delimitadores
+
+        // Usando delimitadores
         StringTokenizer tokens2 = new StringTokenizer(linea, "+=");
-        while(tokens2.hasMoreTokens())
+        while (tokens2.hasMoreTokens())
             System.out.println(tokens2.nextToken().trim());
 
         System.out.println();
 
-        int token = lexico();
-        do
-        {
-            System.out.println(token+" "+lexema);
+        String token = lexico();
+        System.out.printf("%-12s| %-12s\n", "Token", "Lexema");
+        System.out.println("----------------------------");
+
+        while (!lexema.equals("")) {
+            System.out.printf("%-12s| %-12s\n", token, lexema);
             token = lexico();
         }
-        while (!lexema.equals(""));
+
+        // System.out.println("Numeros:" + NUMERO);
+        // System.out.println("Operadores" + OPERADOR);
+        // System.out.println("Puntuadores" + PUNTUADOR);
     }
 }
