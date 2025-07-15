@@ -9,6 +9,6 @@ public enum TokenType {
     TOKEN_PAR_IZQ,      // Paréntesis izquierdo: (
     TOKEN_PAR_DER,      // Paréntesis derecho: )
     TOKEN_IDENTIFICADOR, // Variables: a, b, x1
-    TOKEN_IGUAL, // Variables: a, b, x1
+    TOKEN_ASIGNACION, // Variables: a, b, x1
     TOKEN_ERROR         // Símbolos no reconocidos: @, #
 }

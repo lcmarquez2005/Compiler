@@ -14,12 +14,12 @@ public class Tokenizer {
 
     public List<Token> analizar(String linea) {
         List<Token> tokens = new ArrayList<>();
-    
-    // Patrón regex para identificar:
-    // 1. Números (enteros o decimales): \\d+(\\.\\d+)?
-    // 2. Variables (solo letras): [a-zA-Z]+
-    // 3. Operadores y paréntesis: [+\\-*/()]
-    // 4. Cualquier otro símbolo no espacio: \\S
+
+        // Patrón regex para identificar:
+        // 1. Números (enteros o decimales): \\d+(\\.\\d+)?
+        // 2. Variables (solo letras): [a-zA-Z]+
+        // 3. Operadores y paréntesis: [+\\-*/()]
+        // 4. Cualquier otro símbolo no espacio: \\S
 
         Pattern patron = Pattern.compile("\\d+(\\.\\d+)?|[a-zA-Z]+|[+\\-*/()]|\\S");
         Matcher matcher = patron.matcher(linea);
@@ -33,30 +33,43 @@ public class Tokenizer {
             TokenType tipo = clasificar(lexema);
 
             // Determinamos el tipo del token creado
-            tokens.add(new Token(lexema, tipo, posicion, 0 , 0));
+            tokens.add(new Token(lexema, tipo, posicion, 0, 0));
         }
 
         return tokens;
     }
 
-
     // Determinamos el tipo del token en base al lexema
     private TokenType clasificar(String lexema) {
 
-        // Comprobamos si nuetro lecema es un numero (entero o de tipo decimal)
-        if (lexema.matches("\\d+(\\.\\d+)?")) return TokenType.TOKEN_NUMERO; 
+        // Comprobamos si nuetro lexema es un numero (entero o de tipo decimal)
+        if (lexema.matches("\\d+(\\.\\d+)?"))
+            return TokenType.TOKEN_NUMERO;
 
         // Comprobamos si nuestro lexema es un identificador (variable)
-        else if (lexema.matches("[a-zA-Z]+")) return TokenType.TOKEN_IDENTIFICADOR;
-
+        else if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*"))
+                    // if (esPalabraReservada(lexema)) {
+                // Token tipo palabra reservada (e.g., if, while, int)
+            // } else {
+                // tokens.add(new Token("IDENTIFICADOR", lexema));
+            return TokenType.TOKEN_IDENTIFICADOR;
         // Comprobamos si nuestro lexema es un operador o paréntesis
-        else if (lexema.equals("+")) return TokenType.TOKEN_PLUS;
-        else if (lexema.equals("-")) return TokenType.TOKEN_MINUS;
-        else if (lexema.equals("*")) return TokenType.TOKEN_ASTERISCO;
-        else if (lexema.equals("/")) return TokenType.TOKEN_DIVISION;
-        else if (lexema.equals("(")) return TokenType.TOKEN_PAR_IZQ;
-        else if (lexema.equals(")")) return TokenType.TOKEN_PAR_DER;
-        else if (lexema.equals("=")) return TokenType.TOKEN_IGUAL;
-        else return TokenType.TOKEN_ERROR;
+        else if (lexema.equals("+"))
+            return TokenType.TOKEN_PLUS;
+        else if (lexema.equals("-"))
+            return TokenType.TOKEN_MINUS;
+        else if (lexema.equals("*"))
+            return TokenType.TOKEN_ASTERISCO;
+        else if (lexema.equals("/"))
+            return TokenType.TOKEN_DIVISION;
+        else if (lexema.equals("("))
+            return TokenType.TOKEN_PAR_IZQ;
+        else if (lexema.equals(")"))
+            return TokenType.TOKEN_PAR_DER;
+        else if (lexema.equals("="))
+            return TokenType.TOKEN_ASIGNACION;
+
+        else
+            return TokenType.TOKEN_ERROR;
     }
 }
