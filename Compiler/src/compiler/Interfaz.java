@@ -41,6 +41,8 @@ public class Interfaz extends JFrame {
         infoPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
 
         JLabel alumnoLabel = new JLabel("Alumno: PORRAS LUGO INGRID ALISON      No. Control: 22200758");
+        JLabel alumnoLabel1 = new JLabel("Alumno: ERIK IVAN QUIJANO      No. Control: 22200758");
+        JLabel alumnoLabel2 = new JLabel("Alumno: LUIS CARLOS MARQUEZ STROCIAK      No. Control: 23200286");
         JLabel materiaLabel = new JLabel("Instituto Tecnológico de Pachuca - Lenguajes y Autómatas II");
         JLabel docenteLabel = new JLabel("Docente: Dr. Arturo González Cerón");
 
@@ -106,11 +108,11 @@ public class Interfaz extends JFrame {
             if (!code.isEmpty()) {
                 List<Token> tokens = lexer.analizar(code);
                 for (Token token : tokens) {
-                   /* tableModel.addRow(new Object[]{
-                        token.lexema,
-                        token.tipo,
-                        token.posicion
-                    });*/
+                    tableModel.addRow(new Object[]{
+                        token.getLexema(),
+                        token.getTipo(),
+                        "Columna: " + token.getColumna() +"Linea: " +  token.getLinea()
+                    });
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Por favor, escribe algo para analizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
