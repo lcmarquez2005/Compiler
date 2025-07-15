@@ -2,7 +2,7 @@ package compiler;
 public class Limpiador {
 
     // comentario multilínea
-    public static String limpiarComentarios(String linea, boolean[] dentroComentario) {
+    public String limpiarComentarios(String linea, boolean[] dentroComentario) {
         if (dentroComentario[0]) {
             // Si estamos dentro de un comentario multilínea
             if (linea.contains("*/")) {
@@ -38,7 +38,7 @@ public class Limpiador {
         return linea;
     }
 
-    public static String limpiarEspaciosTabsSaltos(String linea) {
+    public String limpiarEspaciosTabsSaltos(String linea) {
         return linea.replaceAll("[ \t\r\n]", "");
     }
 }
