@@ -34,58 +34,66 @@ public class Interfaz extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(mainBackground);
         setLayout(new BorderLayout(10, 10));
+JPanel infoPanel = new JPanel();
+infoPanel.setBackground(headerColor);
+infoPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
 
-        // Panel superior: info alumno y docente
-        JPanel infoPanel = new JPanel(new GridLayout(3, 1));
-        infoPanel.setBackground(headerColor);
-        infoPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+JLabel materiaLabel = new JLabel("Instituto Tecnológico de Pachuca - Lenguajes y Autómatas II");
+materiaLabel.setFont(regularFont);
+materiaLabel.setForeground(Color.BLACK);
+materiaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel alumnoLabel = new JLabel("Alumno: PORRAS LUGO INGRID ALISON      No. Control: 22200758");
-        JLabel alumnoLabel1 = new JLabel("Alumno: ERIK IVAN QUIJANO      No. Control: 22200758");
-        JLabel alumnoLabel2 = new JLabel("Alumno: LUIS CARLOS MARQUEZ STROCIAK      No. Control: 23200286");
-        JLabel materiaLabel = new JLabel("Instituto Tecnológico de Pachuca - Lenguajes y Autómatas II");
-        JLabel docenteLabel = new JLabel("Docente: Dr. Arturo González Cerón");
+JLabel docenteLabel = new JLabel("Docente: Dr. Arturo González Cerón");
+docenteLabel.setFont(regularFont);
+docenteLabel.setForeground(Color.BLACK);
+docenteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        alumnoLabel.setFont(titleFont);
-        materiaLabel.setFont(regularFont);
-        docenteLabel.setFont(regularFont);
+JLabel alumnosLabel = new JLabel("<html><div style='text-align: center;'>" +
+    "<b>Alumnos:</b><br>" +
+    "<table style='margin: 0 auto;'>" +
+    "<tr><td>Luis Carlos Marquez Strociak</td><td style='padding-left: 10px;'>23200286</td></tr>" +
+    "<tr><td>Erik Ivan Quijano Gonzales</td><td style='padding-left: 10px;'>22200759</td></tr>" +
+    "<tr><td>Ingrid Alison Porras Lugo</td><td style='padding-left: 10px;'>22200758</td></tr>" +
+    "</table>" +
+    "</div></html>");
+alumnosLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+alumnosLabel.setFont(regularFont);
+alumnosLabel.setForeground(Color.BLACK);
+alumnosLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        alumnoLabel.setForeground(Color.BLACK);
-        materiaLabel.setForeground(Color.BLACK);
-        docenteLabel.setForeground(Color.BLACK);
+infoPanel.add(materiaLabel);
+infoPanel.add(Box.createVerticalStrut(3));
+infoPanel.add(docenteLabel);
+infoPanel.add(alumnosLabel);
+infoPanel.add(Box.createVerticalStrut(3));
 
-        infoPanel.add(alumnoLabel);
-        infoPanel.add(materiaLabel);
-        infoPanel.add(docenteLabel);
+
 
         // Área de entrada
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.setBorder(BorderFactory.createTitledBorder("Código fuente a analizar"));
         inputPanel.setBackground(mainBackground);
 
-        inputArea = new JTextArea(5, 40);
+inputArea = new JTextArea(15, 60);
         inputArea.setFont(new Font("Consolas", Font.PLAIN, 14));
         JScrollPane inputScroll = new JScrollPane(inputArea);
         inputPanel.add(inputScroll, BorderLayout.CENTER);
 
-        // Tabla de resultados
+        
         String[] columnNames = {"Lexema", "Tipo", "Posición"};
         tableModel = new DefaultTableModel(columnNames, 0);
         resultTable = new JTable(tableModel);
-        resultTable.setFont(regularFont);
+       resultTable.setFont(regularFont);
         resultTable.setRowHeight(25);
-        resultTable.setGridColor(borderColor);
+        resultTable.setGridColor(new Color(180, 180, 180));
         resultTable.setShowHorizontalLines(true);
-        resultTable.setShowVerticalLines(false);
-        resultTable.setIntercellSpacing(new Dimension(0, 5));
-
-        DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-        headerRenderer.setBackground(new Color(230, 230, 250));
-        headerRenderer.setForeground(Color.BLACK);
-        headerRenderer.setFont(titleFont);
-        headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        resultTable.setShowVerticalLines(true);
+        resultTable.setIntercellSpacing(new Dimension(1, 1));
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < resultTable.getColumnCount(); i++) {
-            resultTable.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+            resultTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
         JPanel resultPanel = new JPanel(new BorderLayout());
@@ -111,7 +119,7 @@ public class Interfaz extends JFrame {
                     tableModel.addRow(new Object[]{
                         token.getLexema(),
                         token.getTipo(),
-                        "Columna: " + token.getColumna() +"   Linea: " +  token.getLinea()
+                        "Columna: " + token.getColumna() +"Linea: " +  token.getLinea()
                     });
                 }
             } else {
