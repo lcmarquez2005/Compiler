@@ -4,26 +4,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        Lexer lexer = new Lexer();
-            Interfaz gui = new Interfaz();
-            gui.setVisible(true);
-        System.out.println("Analizador léxico básico");
-        System.out.println("Escribe una expresión y presiona Enter. Escribe 'salir' para terminar.");
-
-        // while (true) {
-        //     System.out.print("> ");
-        //     String expresion = scanner.nextLine();
-
-        //     if (expresion.equalsIgnoreCase("salir")) {
-        //         System.out.println("Programa finalizado.");
-        //         break;
-        //     }
-
-        //     lexer.analizar(expresion);
-        //     System.out.println(); // Espacio entre expresiones
-        // }
-
-        scanner.close();
+        Interfaz gui = new Interfaz();
+        gui.setVisible(true);
     }
 }

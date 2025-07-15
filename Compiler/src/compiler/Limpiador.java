@@ -1,6 +1,6 @@
 package compiler;
+// se supone que esta clase es para todos los metodos que se encargan de limpiar el archivo a analizar
 public class Limpiador {
-
     private boolean dentroComentario = false;
 
     public String limpiarLinea(String linea) {
@@ -35,7 +35,7 @@ public class Limpiador {
     }
 
     public String[] dividirSentencias(String linea) {
-        return linea.trim().split("\\s*;\\s*"); // Puedes cambiar el separador aquí
+        return linea.trim().split("\\s*;\\s*"); // separador ;
     }
 
     public String limpiarEspacios(String cadena) {

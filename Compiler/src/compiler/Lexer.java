@@ -27,17 +27,7 @@ public class Lexer {
                 tokens.addAll(tokenizer.tokeniza(limpia));
             }
         }
-
-        imprimirTokens(tokens);
         return tokens;
     }
 
-
-    private void imprimirTokens(List<Token> tokens) {
-        System.out.println("Lexema     | Tipo       | Posición");
-        System.out.println("-----------|------------|---------");
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
-    }
 }

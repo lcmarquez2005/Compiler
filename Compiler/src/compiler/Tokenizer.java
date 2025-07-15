@@ -36,36 +36,22 @@ public class Tokenizer {
 
     // Determinamos el tipo del token en base al lexema
     private TokenType clasificar(String lexema) {
-        // 1. Número entero o decimal
-        if (lexema.matches("\\d+(\\.\\d+)?")) {
+        if (lexema.matches("\\d+(\\.\\d+)?"))
             return TokenType.TOKEN_NUMERO;
-        }
-
-        // 2. Identificador (letras y guiones bajos, no empieza con número)
-        if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
-            // Aquí puedes extender para palabras reservadas si quieres
+        if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*"))
             return TokenType.TOKEN_IDENTIFICADOR;
-        }
 
-        // 3. Operadores y paréntesis
-        switch (lexema) {
-            case "+":
-                return TokenType.TOKEN_PLUS;
-            case "-":
-                return TokenType.TOKEN_MINUS;
-            case "*":
-                return TokenType.TOKEN_ASTERISCO;
-            case "/":
-                return TokenType.TOKEN_DIVISION;
-            case "(":
-                return TokenType.TOKEN_PAR_IZQ;
-            case ")":
-                return TokenType.TOKEN_PAR_DER;
-            case "=":
-                return TokenType.TOKEN_ASIGNACION;
-            default:
-                return TokenType.TOKEN_ERROR;
-        }
+        // Detectar operadores y paréntesis
+        return switch (lexema) {
+            case "+" -> TokenType.TOKEN_PLUS;
+            case "-" -> TokenType.TOKEN_MINUS;
+            case "*" -> TokenType.TOKEN_ASTERISCO;
+            case "/" -> TokenType.TOKEN_DIVISION;
+            case "(" -> TokenType.TOKEN_PAR_IZQ;
+            case ")" -> TokenType.TOKEN_PAR_DER;
+            case "=" -> TokenType.TOKEN_ASIGNACION;
+            default -> TokenType.TOKEN_ERROR;
+        };
     }
 
 }
