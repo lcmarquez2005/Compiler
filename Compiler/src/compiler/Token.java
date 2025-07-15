@@ -4,11 +4,15 @@ public class Token {
 private final String lexema; // Texto del token (ej: "42", "+")
 private final TokenType tipo; // Tipo del token (ej: 4 = TOKEN_NUMERO)
 private final int posicion; // Posición en el texto original
+private final int columna;
+private final int linea;
 
-public Token(String lexema, TokenType tipo, int posicion) {
+public Token(String lexema, TokenType tipo, int posicion, int columna, int linea) {
     this.lexema = lexema;
     this.tipo = tipo;
     this.posicion = posicion;
+    this.columna = columna;
+    this.linea = linea;
 }
 
 // Obtenemos el texto del token
@@ -26,10 +30,20 @@ public int getPosicion() {
     return posicion;
 }
 
+public int getColumna() {
+    return columna;
+}
+
+public int getLinea() {
+    return linea;
+}
+
+
+// metodo que ayuda a imprimir la tabla en la terminal
 @Override
 public String toString() {
     return String.format("%-15s | %-15s | Posición: %d", 
-        "TOKEN_" + tipo.name(), 
+        tipo.name(), 
         lexema, 
         posicion);
 }

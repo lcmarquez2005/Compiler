@@ -33,7 +33,7 @@ public class Tokenizer {
             TokenType tipo = clasificar(lexema);
 
             // Determinamos el tipo del token creado
-            tokens.add(new Token(lexema, tipo, posicion));
+            tokens.add(new Token(lexema, tipo, posicion, 0 , 0));
         }
 
         return tokens;
@@ -56,6 +56,7 @@ public class Tokenizer {
         else if (lexema.equals("/")) return TokenType.TOKEN_DIVISION;
         else if (lexema.equals("(")) return TokenType.TOKEN_PAR_IZQ;
         else if (lexema.equals(")")) return TokenType.TOKEN_PAR_DER;
+        else if (lexema.equals("=")) return TokenType.TOKEN_IGUAL;
         else return TokenType.TOKEN_ERROR;
     }
 }

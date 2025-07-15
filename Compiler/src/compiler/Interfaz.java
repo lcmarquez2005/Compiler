@@ -111,7 +111,7 @@ public class Interfaz extends JFrame {
                     tableModel.addRow(new Object[]{
                         token.getLexema(),
                         token.getTipo(),
-                        "Columna: " + token.getColumna() +"Linea: " +  token.getLinea()
+                        "Columna: " + token.getColumna() +"   Linea: " +  token.getLinea()
                     });
                 }
             } else {
