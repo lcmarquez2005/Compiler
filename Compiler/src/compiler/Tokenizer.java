@@ -15,10 +15,12 @@ public class Tokenizer {
     public List<Token> tokeniza(String texto) {
         List<Token> tokens = new ArrayList<>();
         Pattern patron = Pattern.compile(
-                "\\d+(\\.\\d+)?|" + // números
-                        "[a-zA-Z_][a-zA-Z0-9_]*|" + // identificadores
-                        "[+\\-*/=()]" + // operadores y paréntesis
-                        "|\\S" // cualquier otro símbolo no espacio
+    "\\d+(\\.\\d+)?|" +              // Números
+    "[a-zA-Z_][a-zA-Z0-9_]*|" +      // Identificadores válidos
+    "[a-zA-Z_][^\\s;()=+\\-*/]*|" +  // Identificadores inválidos (ej. hola$f)
+    "[+\\-*/=()]|" +                 // Operadores/paréntesis
+    ";|" +                           // Separadores opcionales
+    "\\S+"                           // Otros símbolos no válidos agrupados
         );
 
         Matcher matcher = patron.matcher(texto);
