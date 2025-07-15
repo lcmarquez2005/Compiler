@@ -111,7 +111,7 @@ inputArea = new JTextArea(15, 60);
         // Acción botón Analizar
         analyzeBtn.addActionListener(e -> {
             tableModel.setRowCount(0);
-            String code = inputArea.getText().trim();
+            String code = inputArea.getText();
 
             if (!code.isEmpty()) {
                 List<Token> tokens = lexer.analizar(code);

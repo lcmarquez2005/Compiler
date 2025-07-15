@@ -11,18 +11,18 @@ public class Main {
         System.out.println("Analizador léxico básico");
         System.out.println("Escribe una expresión y presiona Enter. Escribe 'salir' para terminar.");
 
-        while (true) {
-            System.out.print("> ");
-            String expresion = scanner.nextLine();
+        // while (true) {
+        //     System.out.print("> ");
+        //     String expresion = scanner.nextLine();
 
-            if (expresion.equalsIgnoreCase("salir")) {
-                System.out.println("Programa finalizado.");
-                break;
-            }
+        //     if (expresion.equalsIgnoreCase("salir")) {
+        //         System.out.println("Programa finalizado.");
+        //         break;
+        //     }
 
-            lexer.analizar(expresion);
-            System.out.println(); // Espacio entre expresiones
-        }
+        //     lexer.analizar(expresion);
+        //     System.out.println(); // Espacio entre expresiones
+        // }
 
         scanner.close();
     }

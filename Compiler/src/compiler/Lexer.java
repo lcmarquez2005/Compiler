@@ -1,36 +1,37 @@
 package compiler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Lexer {
     private final Tokenizer tokenizer;
     private final Limpiador limpiador;
-    private static final char SEPARADOR = ';';
-
-    boolean[] dentroComentario = new boolean[] { false };
 
     public Lexer() {
         this.tokenizer = new Tokenizer();
         this.limpiador = new Limpiador();
     }
 
-    private String[] dividirPorSeparador(String linea) {
-        return linea.trim().split("\\s*" + SEPARADOR + "\\s*");
-    }
+    // realmente esta tomando todo el texto en lugar de la linea
+    public List<Token> analizar(String archivo) {
+        List<Token> tokens = new ArrayList<>();
 
+        for (String linea : archivo.split("\\R")) {
+            String sinComentarios = limpiador.limpiarLinea(linea);
 
-    public List<Token> analizar(String linea) {
-        String lineaSinComentarios = limpiador.limpiarComentarios(linea, dentroComentario); 
-        String[] cadenas = dividirPorSeparador(lineaSinComentarios);
-        int columnaActual = 1;
-        List<Token> tokens = tokenizer.analizar(lineaSinComentarios);
-            for (String cadena : cadenas) {
-                String lexema = limpiador.limpiarEspaciosTabsSaltos(cadena);
-                // analizar cadena por cadena  de esta forma tambien puede ser toda la linea, pero habria que cambiar el dividir por serparador
+            // si la linea esta vacia brincala
+            if (sinComentarios.isBlank()) continue;
+
+            for (String sentencia : limpiador.dividirSentencias(sinComentarios)) {
+                String limpia = limpiador.limpiarEspacios(sentencia);
+                tokens.addAll(tokenizer.tokeniza(limpia));
             }
+        }
+
         imprimirTokens(tokens);
         return tokens;
     }
+
 
     private void imprimirTokens(List<Token> tokens) {
         System.out.println("Lexema     | Tipo       | Posición");

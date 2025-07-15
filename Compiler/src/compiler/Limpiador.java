@@ -1,44 +1,44 @@
 package compiler;
 public class Limpiador {
 
-    // comentario multilínea
-    public String limpiarComentarios(String linea, boolean[] dentroComentario) {
-        if (dentroComentario[0]) {
-            // Si estamos dentro de un comentario multilínea
+    private boolean dentroComentario = false;
+
+    public String limpiarLinea(String linea) {
+        if (dentroComentario) {
             if (linea.contains("*/")) {
-                linea = linea.substring(linea.indexOf("*/") + 1);
-                dentroComentario[0] = false;
-                // Puede quedar texto después, continuar limpiando en esta misma línea
-                linea = limpiarComentarios(linea, dentroComentario);
-            } else {
-                // Toda la línea está dentro del comentario, se elimina
-                return "";
+                linea = linea.substring(linea.indexOf("*/") + 2);
+                dentroComentario = false;
+                return limpiarLinea(linea);
             }
-        } else {
-            // Si no estamos dentro de comentario multilínea
-
-            // Quitar comentarios de línea simples "//"
-            if (linea.contains("//")) {
-                linea = linea.substring(0, linea.indexOf("//"));
-            }
-
-            // Quitar comentarios en bloque que están en la misma línea /* ... */
-            while (linea.contains("/*") && linea.contains("*/") && linea.indexOf("/*") < linea.indexOf("*/")) {
-                int inicio = linea.indexOf("/*");
-                int fin = linea.indexOf("*/") + 2;
-                linea = linea.substring(0, inicio) + linea.substring(fin);
-            }
-
-            // Si empieza comentario multilínea sin cierre en esta línea
-            if (linea.contains("/*") && !linea.contains("*/")) {
-                linea = linea.substring(0, linea.indexOf("/*"));
-                dentroComentario[0] = true;
-            }
+            return "";
         }
+
+        // Eliminar comentarios de línea
+        if (linea.contains("//")) {
+            linea = linea.substring(0, linea.indexOf("//"));
+        }
+
+        // Comentarios /* ... */
+        while (linea.contains("/*") && linea.contains("*/") && linea.indexOf("/*") < linea.indexOf("*/")) {
+            int start = linea.indexOf("/*");
+            int end = linea.indexOf("*/") + 2;
+            linea = linea.substring(0, start) + linea.substring(end);
+        }
+
+        // Comentario abierto sin cierre
+        if (linea.contains("/*")) {
+            linea = linea.substring(0, linea.indexOf("/*"));
+            dentroComentario = true;
+        }
+
         return linea;
     }
 
-    public String limpiarEspaciosTabsSaltos(String linea) {
-        return linea.replaceAll("[ \t\r\n]", "");
+    public String[] dividirSentencias(String linea) {
+        return linea.trim().split("\\s*;\\s*"); // Puedes cambiar el separador aquí
+    }
+
+    public String limpiarEspacios(String cadena) {
+        return cadena.replaceAll("[ \t\r\n]", "");
     }
 }

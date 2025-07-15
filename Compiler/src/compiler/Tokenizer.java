@@ -12,28 +12,23 @@ public class Tokenizer {
      * @return Lista de tokens identificados en el texto
      */
 
-    public List<Token> analizar(String linea) {
+    public List<Token> tokeniza(String texto) {
         List<Token> tokens = new ArrayList<>();
+        Pattern patron = Pattern.compile(
+                "\\d+(\\.\\d+)?|" + // números
+                        "[a-zA-Z_][a-zA-Z0-9_]*|" + // identificadores
+                        "[+\\-*/=()]" + // operadores y paréntesis
+                        "|\\S" // cualquier otro símbolo no espacio
+        );
 
-        // Patrón regex para identificar:
-        // 1. Números (enteros o decimales): \\d+(\\.\\d+)?
-        // 2. Variables (solo letras): [a-zA-Z]+
-        // 3. Operadores y paréntesis: [+\\-*/()]
-        // 4. Cualquier otro símbolo no espacio: \\S
+        Matcher matcher = patron.matcher(texto);
 
-        Pattern patron = Pattern.compile("\\d+(\\.\\d+)?|[a-zA-Z]+|[+\\-*/()]|\\S");
-        Matcher matcher = patron.matcher(linea);
-
-        // Aqui recorremos todas las coincidencias del patrón en el texto
         while (matcher.find()) {
-            String lexema = matcher.group(); // Obtenemos el texto del token encontrado
-            int posicion = matcher.start(); // Obtenemos la posición INICIAL del token en el texto
+            String lexema = matcher.group();
+            int columna = matcher.start() + 1; // +1 si quieres empezar en columna 1
 
-            // Aqui se crea y se añade el nuevo token a la lista
             TokenType tipo = clasificar(lexema);
-
-            // Determinamos el tipo del token creado
-            tokens.add(new Token(lexema, tipo, posicion, 0, 0));
+            tokens.add(new Token(lexema, tipo, columna, 0, 0)); // ajusta 0s si usas fila/columna real
         }
 
         return tokens;
@@ -41,35 +36,36 @@ public class Tokenizer {
 
     // Determinamos el tipo del token en base al lexema
     private TokenType clasificar(String lexema) {
-
-        // Comprobamos si nuetro lexema es un numero (entero o de tipo decimal)
-        if (lexema.matches("\\d+(\\.\\d+)?"))
+        // 1. Número entero o decimal
+        if (lexema.matches("\\d+(\\.\\d+)?")) {
             return TokenType.TOKEN_NUMERO;
+        }
 
-        // Comprobamos si nuestro lexema es un identificador (variable)
-        else if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*"))
-                    // if (esPalabraReservada(lexema)) {
-                // Token tipo palabra reservada (e.g., if, while, int)
-            // } else {
-                // tokens.add(new Token("IDENTIFICADOR", lexema));
+        // 2. Identificador (letras y guiones bajos, no empieza con número)
+        if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+            // Aquí puedes extender para palabras reservadas si quieres
             return TokenType.TOKEN_IDENTIFICADOR;
-        // Comprobamos si nuestro lexema es un operador o paréntesis
-        else if (lexema.equals("+"))
-            return TokenType.TOKEN_PLUS;
-        else if (lexema.equals("-"))
-            return TokenType.TOKEN_MINUS;
-        else if (lexema.equals("*"))
-            return TokenType.TOKEN_ASTERISCO;
-        else if (lexema.equals("/"))
-            return TokenType.TOKEN_DIVISION;
-        else if (lexema.equals("("))
-            return TokenType.TOKEN_PAR_IZQ;
-        else if (lexema.equals(")"))
-            return TokenType.TOKEN_PAR_DER;
-        else if (lexema.equals("="))
-            return TokenType.TOKEN_ASIGNACION;
+        }
 
-        else
-            return TokenType.TOKEN_ERROR;
+        // 3. Operadores y paréntesis
+        switch (lexema) {
+            case "+":
+                return TokenType.TOKEN_PLUS;
+            case "-":
+                return TokenType.TOKEN_MINUS;
+            case "*":
+                return TokenType.TOKEN_ASTERISCO;
+            case "/":
+                return TokenType.TOKEN_DIVISION;
+            case "(":
+                return TokenType.TOKEN_PAR_IZQ;
+            case ")":
+                return TokenType.TOKEN_PAR_DER;
+            case "=":
+                return TokenType.TOKEN_ASIGNACION;
+            default:
+                return TokenType.TOKEN_ERROR;
+        }
     }
+
 }
