@@ -4,6 +4,7 @@ public class Limpiador {
     private boolean dentroComentario = false;
 
     public String limpiarLinea(String linea) {
+        // verificamos si estamos dentro del comentario, para ver si encontramos lo que lo termina
         if (dentroComentario) {
             if (linea.contains("*/")) {
                 linea = linea.substring(linea.indexOf("*/") + 2);

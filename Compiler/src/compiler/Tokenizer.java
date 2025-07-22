@@ -12,15 +12,15 @@ public class Tokenizer {
      * @return Lista de tokens identificados en el texto
      */
 
-    public List<Token> tokeniza(String texto) {
+    public List<Token> tokeniza(String texto, int linea) {
         List<Token> tokens = new ArrayList<>();
         Pattern patron = Pattern.compile(
-    "\\d+(\\.\\d+)?|" +              // Números
-    "[a-zA-Z_][a-zA-Z0-9_]*|" +      // Identificadores válidos
-    "[a-zA-Z_][^\\s;()=+\\-*/]*|" +  // Identificadores inválidos (ej. hola$f)
-    "[+\\-*/=()]|" +                 // Operadores/paréntesis
-    ";|" +                           // Separadores opcionales
-    "\\S+"                           // Otros símbolos no válidos agrupados
+            "\\d+(\\.\\d+)?|" +              // Números
+            "[a-zA-Z_][a-zA-Z0-9_]*|" +      // Identificadores válidos
+            "[a-zA-Z_][^\\s;()=+\\-*/]*|" +  // Identificadores inválidos (ej. hola$f)
+            "[+\\-*/=()]|" +                 // Operadores/paréntesis
+            ";|" +                           // Separadores opcionales
+            "\\S+"                           // Otros símbolos no válidos agrupados
         );
 
         Matcher matcher = patron.matcher(texto);
@@ -29,8 +29,7 @@ public class Tokenizer {
             String lexema = matcher.group();
             int columna = matcher.start() + 1; // +1 si quieres empezar en columna 1
 
-            TokenType tipo = clasificar(lexema);
-            tokens.add(new Token(lexema, tipo, columna, 0, 0)); // ajusta 0s si usas fila/columna real
+            tokens.add(new Token(lexema, clasificar(lexema), columna, 0, linea)); 
         }
 
         return tokens;
@@ -39,20 +38,19 @@ public class Tokenizer {
     // Determinamos el tipo del token en base al lexema
     private TokenType clasificar(String lexema) {
         if (lexema.matches("\\d+(\\.\\d+)?"))
-            return TokenType.TOKEN_NUMERO;
+        return TokenType.NUMERO;
         if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*"))
-            return TokenType.TOKEN_IDENTIFICADOR;
+        return TokenType.IDENTIFICADOR;
 
         // Detectar operadores y paréntesis
         return switch (lexema) {
-            case "+" -> TokenType.TOKEN_PLUS;
-            case "-" -> TokenType.TOKEN_MINUS;
-            case "*" -> TokenType.TOKEN_ASTERISCO;
-            case "/" -> TokenType.TOKEN_DIVISION;
-            case "(" -> TokenType.TOKEN_PAR_IZQ;
-            case ")" -> TokenType.TOKEN_PAR_DER;
-            case "=" -> TokenType.TOKEN_ASIGNACION;
-            default -> TokenType.TOKEN_ERROR;
+            case "+" -> TokenType.PLUS;
+            case "-" -> TokenType.MINUS;
+            case "*" -> TokenType.ASTERISCO;
+            case "(" -> TokenType.PAR_IZQ;
+            case ")" -> TokenType.PAR_DER;
+            case "=" -> TokenType.ASIGNACION;
+            default -> TokenType.ERROR;
         };
     }
 
