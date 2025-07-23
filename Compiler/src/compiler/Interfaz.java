@@ -50,13 +50,15 @@ public class Interfaz extends JFrame {
         docenteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel alumnosLabel = new JLabel("<html><div style='text-align: center;'>" +
-            "<b>Alumnos:</b><br>" +
-            "<table style='margin: 0 auto;'>" +
-            "<tr><td>Luis Carlos Marquez Strociak</td><td style='padding-left: 10px;'>23200286</td></tr>" +
-            "<tr><td>Erik Ivan Quijano Gonzales</td><td style='padding-left: 10px;'>22200759</td></tr>" +
-            "<tr><td>Ingrid Alison Porras Lugo</td><td style='padding-left: 10px;'>22200758</td></tr>" +
-            "</table>" +
-            "</div></html>");
+                "<b>Alumnos:</b><br>" +
+                "<table style='margin: 0 auto;'>" +
+                "<tr><td>Luis Carlos Marquez Strociak</td><td style='padding-left: 1px;'>23200286</td>Erik Ivan Quijano Gonzales"
+                +
+                "<td style='padding-left: 5px;'>22200759</td>Ingrid Alison Porras Lugo" +
+                "<td style='padding-left: 5px;'>22200758</td>" +
+
+                "</table>" +
+                "</div></html>");
         alumnosLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         alumnosLabel.setFont(regularFont);
         alumnosLabel.setForeground(Color.BLACK);
@@ -68,8 +70,6 @@ public class Interfaz extends JFrame {
         infoPanel.add(alumnosLabel);
         infoPanel.add(Box.createVerticalStrut(3));
 
-
-
         // Área de entrada
         JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.setBorder(BorderFactory.createTitledBorder("Código fuente a analizar"));
@@ -80,8 +80,7 @@ public class Interfaz extends JFrame {
         JScrollPane inputScroll = new JScrollPane(inputArea);
         inputPanel.add(inputScroll, BorderLayout.CENTER);
 
-
-        String[] columnNames = {"Lexema", "Tipo", "Posición"};
+        String[] columnNames = { "Lexema", "Tipo", "Posición" };
         tableModel = new DefaultTableModel(columnNames, 0);
         resultTable = new JTable(tableModel);
         resultTable.setFont(regularFont);
@@ -96,10 +95,32 @@ public class Interfaz extends JFrame {
             resultTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
+        // Panel contenedor de resultados
         JPanel resultPanel = new JPanel(new BorderLayout());
         resultPanel.setBorder(BorderFactory.createTitledBorder("Resultados del análisis léxico"));
         resultPanel.setBackground(mainBackground);
-        resultPanel.add(new JScrollPane(resultTable), BorderLayout.CENTER);
+
+        JPanel tokenAndErrorPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        tokenAndErrorPanel.setBackground(mainBackground);
+
+        JScrollPane tableScroll = new JScrollPane(resultTable);
+        tokenAndErrorPanel.add(tableScroll);
+
+        // Panel nuevo: errores léxicos
+        JPanel errorPanel = new JPanel(new BorderLayout());
+        errorPanel.setBorder(BorderFactory.createTitledBorder("Errores Léxicos:"));
+        errorPanel.setBackground(mainBackground);
+
+        JTextArea errorTextArea = new JTextArea();
+        errorTextArea.setEditable(false);
+        errorTextArea.setFont(new Font("Consolas", Font.PLAIN, 13));
+        errorTextArea.setForeground(Color.RED);
+        errorTextArea.setBackground(Color.WHITE);
+        errorTextArea.setText("");
+        errorPanel.add(new JScrollPane(errorTextArea), BorderLayout.CENTER);
+
+        tokenAndErrorPanel.add(errorPanel);
+        resultPanel.add(tokenAndErrorPanel, BorderLayout.CENTER);
 
         // Botones
         JPanel buttonPanel = new JPanel();
@@ -116,14 +137,15 @@ public class Interfaz extends JFrame {
             if (!code.isEmpty()) {
                 List<Token> tokens = lexer.analizar(code);
                 for (Token token : tokens) {
-                    tableModel.addRow(new Object[]{
-                        token.getLexema(),
-                        token.getTipo(),
-                        "Columna: " + token.getColumna() +"Linea: " +  token.getLinea()
+                    tableModel.addRow(new Object[] {
+                            token.getLexema(),
+                            token.getTipo(),
+                            "Columna: " + token.getColumna() + "Linea: " + token.getLinea()
                     });
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Por favor, escribe algo para analizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Por favor, escribe algo para analizar.", "Advertencia",
+                        JOptionPane.WARNING_MESSAGE);
             }
         });
 
@@ -158,9 +180,8 @@ public class Interfaz extends JFrame {
         btn.setFont(titleFont);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(borderColor),
-            new EmptyBorder(8, 20, 8, 20)
-        ));
+                BorderFactory.createLineBorder(borderColor),
+                new EmptyBorder(8, 20, 8, 20)));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -174,22 +195,22 @@ public class Interfaz extends JFrame {
 
         return btn;
     }
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 400, Short.MAX_VALUE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 300, Short.MAX_VALUE));
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
+     // Variables declaration - do not modify//GEN-BEGIN:variables
+     // End of variables declaration//GEN-END:variables
 }
