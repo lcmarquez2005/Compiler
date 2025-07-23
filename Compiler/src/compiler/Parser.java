@@ -2,22 +2,26 @@
 package compiler;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Esta clase Parser analiza una lista de tokens y verifica su sintaxis.
  * Verifica que:
- *  - No falten paréntesis.
- *  - No haya divisiones entre cero.
- *  - No existan operadores consecutivos inválidos (como ++, *-).
- *  - Todas las expresiones terminen con ';'.
+ * - No falten paréntesis.
+ * - No haya divisiones entre cero.
+ * - No existan operadores consecutivos inválidos (como ++, *-).
+ * - Todas las expresiones terminen con ';'.
  */
 public class Parser {
     private final List<Token> tokens; // Lista de tokens a analizar
-    private int current;               // Índice actual del token que se está analizando en la linea
+    private int current; // Índice actual del token que se está analizando en la linea
+
+    private List<SyntaxError> errores;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
-        this.current = 0;              // Inicia en el primer token que es el 0 como de 2+2 serua el 2
+        this.current = 0; // Inicia en el primer token que es el 0 como de 2+2 serua el 2
+        this.errores = new ArrayList<>();
     }
 
     /**
@@ -25,46 +29,56 @@ public class Parser {
      * Lanza SyntaxError si encuentra algún error.
      */
 
-     // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones como X = 2+2*(4+7)
-public void parse() throws SyntaxError {
-    if (match(TokenType.IDENTIFICADOR)) {
-        if (match(TokenType.ASIGNACION)) {
-            E();
+    // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones
+    // como X = 2+2*(4+7)
+    public void parse() {
+        // Si la expresión inicia con un identificador, puede ser una asignación
+        if (match(TokenType.IDENTIFICADOR)) {
+            // Espera que después del identificador venga un '=' para asignar
+            if (match(TokenType.ASIGNACION)) {
+                expression(); // Analiza la expresión a la derecha del '='
+            } else {
+                // Si no hay '=', lanza error específico
+                errores.add(new SyntaxError("Se esperaba '=' despues del identificador", tokens.get(current)));
+            }
         } else {
-            throw new SyntaxError("Se esperaba '=' después del identificador", peek());
+            // Si no inicia con identificador, analiza directamente una expresión
+            expression();
         }
-    } else {
-        E();
-    }
 
-    // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER inesperado
-    if (!isAtEnd() && peek().getTipo() == TokenType.PAR_DER) {
-        throw new SyntaxError("Paréntesis izquierdo faltante", peek());
-    }
+        // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
+        // inesperado
+        if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
+            errores.add(new SyntaxError("Paréntesis izquierdo faltante", getCurrent()));
+        }
 
-    if (match(TokenType.SEMICOLON)) {
-        // OK
-    } else {
-        throw new SyntaxError("Se esperaba ';' al final de la sentencia", peek());
-    }
+        // Luego espera que la sentencia termine con un punto y coma ';'
+        if (match(TokenType.SEMICOLON)) {
+            // Correcto, continúa
+        } else {
+            // Si no hay ';' lanza error
+            // if (current == size()) {
+            //
+            // System.out.println("sex");
+            // }
+            errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
+        }
 
-    // El resto sigue igual
-    if (!isAtEnd()) {
-        if ((current - 1) != 0) {
-            if (this.tokens.get(current).getLinea() == this.tokens.get(current - 1).getLinea()) {
-                throw new SyntaxError("Token inesperado después de ';': '" +
-                        peek().getLexema() + "'", peek());
+        // El resto sigue igual
+        if (!isAtEnd()) {
+            if ((current - 1) != 0) {
+                if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
+                    errores.add(new SyntaxError("Token inesperado después de ';': '", getCurrent()));
+                }
             }
         }
     }
-}
-
 
     /**
      * Método que analiza una expresión que puede contener sumas y restas.
      */
-    private void E() throws SyntaxError {
-        T(); // Analiza el término inicial
+    private void expression() {
+        term(); // Analiza el término inicial
 
         // Mientras haya un operador + o -
         while (current < tokens.size() &&
@@ -72,7 +86,7 @@ public void parse() throws SyntaxError {
                         tokens.get(current).getTipo() == TokenType.MINUS)) {
 
             Token operador = tokens.get(current); // Guarda operador actual
-            current++;                            // Avanza al siguiente token
+            current++; // Avanza al siguiente token
 
             // Verifica que no haya operadores consecutivos inválidos
             if (current < tokens.size() &&
@@ -81,19 +95,19 @@ public void parse() throws SyntaxError {
                             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
                             tokens.get(current).getTipo() == TokenType.DIVISION ||
                             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                throw new SyntaxError("Operadores consecutivos no permitidos: '" +
-                        operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
+                errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
             }
 
-            T(); // Analiza el siguiente término después del operador
+            term(); // Analiza el siguiente término después del operador
         }
     }
 
     /**
-     * Método que analiza un término que puede contener multiplicaciones y divisiones.
+     * Método que analiza un término que puede contener multiplicaciones y
+     * divisiones.
      */
-    private void T() throws SyntaxError {
-        F(); // Analiza el factor inicial
+    private void term() {
+        factor(); // Analiza el factor inicial
 
         // Mientras haya un operador * o / (Multiplicacion o División)
         while (current < tokens.size() &&
@@ -116,61 +130,60 @@ public void parse() throws SyntaxError {
                             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
                             tokens.get(current).getTipo() == TokenType.DIVISION ||
                             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                throw new SyntaxError("Operadores consecutivos no permitidos: '" +
-                        operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
+                errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
             }
 
-            F(); // Analiza el siguiente factor
+            factor(); // Analiza el siguiente factor
         }
     }
 
     /**
      * Método que analiza un factor.
      * Un factor puede ser ya sea como:
-     *  - Un número
-     *  - Un identificador
-     *  - Una expresión entre paréntesis
+     * - Un número
+     * - Un identificador
+     * - Una expresión entre paréntesis
      */
-    private void F() throws SyntaxError {
+    private void factor() {
         if (current >= tokens.size()) {
-            throw new SyntaxError("Se esperaba un factor", tokens.get(current - 1));
+            errores.add(new SyntaxError("Se esperaba un factor", getPrevious()));
         }
 
-        Token token = tokens.get(current);
+        Token token = getCurrent();
         TokenType tipo = token.getTipo();
 
         if (tipo == TokenType.PAR_DER) {
-            throw new SyntaxError("Paréntesis izquierdo faltante", token);
+            errores.add(new SyntaxError("Paréntesis izquierdo faltante", token));
         } else if (tipo == TokenType.PAR_IZQ) {
             current++;
-            E();
+            expression();
 
             if (current >= tokens.size() || tokens.get(current).getTipo() != TokenType.PAR_DER) {
-                throw new SyntaxError("Paréntesis derecho faltante", tokens.get(current - 1));
+                errores.add(new SyntaxError("Paréntesis derecho faltante", getPrevious()));
             }
             current++;
         } else if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
             current++;
         } else {
-            throw new SyntaxError("Factor inválido: '" + token.getLexema() + "'", token);
+            errores.add(new SyntaxError("Factor inválido: '", token));
         }
     }
-
 
     /**
      * Verifica si el siguiente token tras una división es el número 0.
      * Si es así, lanza un error de división por cero.
      */
-    private void checkDivisionByZero() throws SyntaxError {
+    private void checkDivisionByZero() {
         if (current + 1 < tokens.size() &&
                 tokens.get(current + 1).getTipo() == TokenType.NUMERO &&
                 tokens.get(current + 1).getLexema().equals("0")) {
-            throw new SyntaxError("División por cero", tokens.get(current + 1));
+            errores.add(new SyntaxError("División por cero", tokens.get(current + 1)));
         }
     }
 
     /**
-     * Si el token actual coincide con el tipo esperado, consume el token y retorna que es verdadero.
+     * Si el token actual coincide con el tipo esperado, consume el token y retorna
+     * que es verdadero.
      */
     private boolean match(TokenType tipo) {
         if (check(tipo)) {
@@ -184,7 +197,7 @@ public void parse() throws SyntaxError {
      * Verifica si el token actual es del tipo dado sin consumirlo.
      */
     private boolean check(TokenType tipo) {
-        return !isAtEnd() && peek().getTipo() == tipo;
+        return !isAtEnd() && getCurrent().getTipo() == tipo;
     }
 
     /**
@@ -193,7 +206,7 @@ public void parse() throws SyntaxError {
     private Token advance() {
         if (!isAtEnd())
             current++;
-        return previous();
+        return getPrevious();
     }
 
     /**
@@ -206,14 +219,14 @@ public void parse() throws SyntaxError {
     /**
      * Retorna el token actual (el siguiente a analizar).
      */
-    private Token peek() {
+    private Token getCurrent() {
         return tokens.get(current);
     }
 
     /**
      * Retorna el token anterior (último consumido).
      */
-    private Token previous() {
+    private Token getPrevious() {
         return tokens.get(current - 1);
     }
 
