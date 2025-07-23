@@ -26,41 +26,39 @@ public class Parser {
      */
 
      // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones como X = 2+2*(4+7)
-    public void parse() throws SyntaxError {
-        // Si la expresión inicia con un identificador, puede ser una asignación
-        if (match(TokenType.IDENTIFICADOR)) {
-            // Espera que después del identificador venga un '=' para asignar
-            if (match(TokenType.ASIGNACION)) {
-                E(); // Analiza la expresión a la derecha del '='
-            } else {
-                // Si no hay '=', lanza error específico
-                throw new SyntaxError("Se esperaba '=' después del identificador", peek());
-            }
-        } else {
-            // Si no inicia con identificador, analiza directamente una expresión
+public void parse() throws SyntaxError {
+    if (match(TokenType.IDENTIFICADOR)) {
+        if (match(TokenType.ASIGNACION)) {
             E();
-        }
-
-        // Luego espera que la sentencia termine con un punto y coma ';'
-        if (match(TokenType.SEMICOLON)) {
-            // Correcto, continúa
         } else {
-            // Si no hay ';' lanza error
-            throw new SyntaxError("Se esperaba ';' al final de la sentencia", peek());
+            throw new SyntaxError("Se esperaba '=' después del identificador", peek());
         }
+    } else {
+        E();
+    }
 
-        // Después del punto y coma no debe haber más tokens en la misma línea
-        if (!isAtEnd()) {
-            // Evita error si current - 1 es 0 (no hay token anterior)
-            if ((current - 1) != 0) {
-                // Solo lanza error si el siguiente token está en la misma línea que el anterior
-                if (this.tokens.get(current).getLinea() == this.tokens.get(current - 1).getLinea()) {
-                    throw new SyntaxError("Token inesperado después de ';': '" +
-                            peek().getLexema() + "'", peek());
-                }
+    // Antes de buscar el ';', verificamos si el token actual es un PAR_DER inesperado
+    if (!isAtEnd() && peek().getTipo() == TokenType.PAR_DER) {
+        throw new SyntaxError("Paréntesis izquierdo faltante", peek());
+    }
+
+    if (match(TokenType.SEMICOLON)) {
+        // OK
+    } else {
+        throw new SyntaxError("Se esperaba ';' al final de la sentencia", peek());
+    }
+
+    // El resto sigue igual
+    if (!isAtEnd()) {
+        if ((current - 1) != 0) {
+            if (this.tokens.get(current).getLinea() == this.tokens.get(current - 1).getLinea()) {
+                throw new SyntaxError("Token inesperado después de ';': '" +
+                        peek().getLexema() + "'", peek());
             }
         }
     }
+}
+
 
     /**
      * Método que analiza una expresión que puede contener sumas y restas.
@@ -135,27 +133,29 @@ public class Parser {
      */
     private void F() throws SyntaxError {
         if (current >= tokens.size()) {
-            // Si ya no hay tokens, pero se esperaba un factor, lanza error
             throw new SyntaxError("Se esperaba un factor", tokens.get(current - 1));
         }
 
-        TokenType tipo = tokens.get(current).getTipo();
-        if (tipo == TokenType.PAR_IZQ) {
-            current++; // Avanza tras '('
-            E();       // Analiza la expresión dentro del paréntesis
+        Token token = tokens.get(current);
+        TokenType tipo = token.getTipo();
 
-            // Debe haber un paréntesis derecho correspondiente ')'
+        if (tipo == TokenType.PAR_DER) {
+            throw new SyntaxError("Paréntesis izquierdo faltante", token);
+        } else if (tipo == TokenType.PAR_IZQ) {
+            current++;
+            E();
+
             if (current >= tokens.size() || tokens.get(current).getTipo() != TokenType.PAR_DER) {
                 throw new SyntaxError("Paréntesis derecho faltante", tokens.get(current - 1));
             }
-            current++; // Avanza tras ')'
+            current++;
         } else if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
-            current++; // Si es número o identificador, consume token y sigue
+            current++;
         } else {
-            // Si no es factor válido, lanza error
-            throw new SyntaxError("Factor inválido: '" + tokens.get(current).getLexema() + "'", tokens.get(current));
+            throw new SyntaxError("Factor inválido: '" + token.getLexema() + "'", token);
         }
     }
+
 
     /**
      * Verifica si el siguiente token tras una división es el número 0.
