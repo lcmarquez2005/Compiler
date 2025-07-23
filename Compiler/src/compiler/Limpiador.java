@@ -36,8 +36,10 @@ public class Limpiador {
     }
 
     public String[] dividirSentencias(String linea) {
-        return linea.trim().split("\\s*;\\s*"); // separador ;
+        // Dividir pero manteniendo los puntos y coma
+        return linea.trim().split("(?<=;)");
     }
+
 
     public String limpiarEspacios(String cadena) {
         return cadena.replaceAll("[ \t\r\n]", "");

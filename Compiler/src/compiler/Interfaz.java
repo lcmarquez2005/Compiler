@@ -1,11 +1,12 @@
 package compiler;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.List;
 
 public class Interfaz extends JFrame {
 
@@ -130,24 +131,36 @@ public class Interfaz extends JFrame {
         JButton clearBtn = createStyledButton("Borrar");
 
         // Acción botón Analizar
-        analyzeBtn.addActionListener(e -> {
-            tableModel.setRowCount(0);
-            String code = inputArea.getText();
+analyzeBtn.addActionListener(e -> {
+    tableModel.setRowCount(0);
+    errorTextArea.setText("");
+    String code = inputArea.getText();
 
-            if (!code.isEmpty()) {
-                List<Token> tokens = lexer.analizar(code);
-                for (Token token : tokens) {
-                    tableModel.addRow(new Object[] {
-                            token.getLexema(),
-                            token.getTipo(),
-                            "Columna: " + token.getColumna() + "Linea: " + token.getLinea()
-                    });
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Por favor, escribe algo para analizar.", "Advertencia",
-                        JOptionPane.WARNING_MESSAGE);
-            }
-        });
+    if (!code.isEmpty()) {
+        List<Token> tokens = lexer.analizar(code);
+        
+        // Mostrar tokens en la tabla
+        for (Token token : tokens) {
+            tableModel.addRow(new Object[] {
+                token.getLexema(),
+                token.getTipo(),
+                "Línea: " + token.getLinea() + ", Col: " + token.getColumna()
+            });
+        }
+
+        // Analizar sintaxis
+        try {
+            Parser parser = new Parser(tokens);
+            parser.parse(); // Aquí se validará el ";"
+        } catch (SyntaxError ex) {
+            errorTextArea.append("Error: " + ex.getMessage() + 
+                    " (Línea " + ex.getToken().getLinea() + 
+                    ", Col " + ex.getToken().getColumna() + ")\n");
+        }
+    } else {
+        JOptionPane.showMessageDialog(this, "Escribe algo antes de analizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+    }
+});
 
         // Acción botón Borrar
         clearBtn.addActionListener(e -> {
@@ -213,4 +226,24 @@ public class Interfaz extends JFrame {
     }// </editor-fold>//GEN-END:initComponents
      // Variables declaration - do not modify//GEN-BEGIN:variables
      // End of variables declaration//GEN-END:variables
+private List<List<Token>> splitTokensBySemicolon(List<Token> tokens) {
+    List<List<Token>> statements = new ArrayList<>();
+    List<Token> current = new ArrayList<>();
+    
+    for (Token token : tokens) {
+        current.add(token); // Siempre añadimos el token a la lista actual
+        
+        if (token.getTipo() == TokenType.SEMICOLON) {
+            statements.add(current);
+            current = new ArrayList<>();
+        }
+    }
+    
+    // Si hay tokens restantes sin punto y coma al final
+    if (!current.isEmpty()) {
+        statements.add(current);
+    }
+    
+    return statements;
+}
 }
