@@ -109,7 +109,7 @@ public class Interfaz extends JFrame {
 
         // Panel nuevo: errores léxicos
         JPanel errorPanel = new JPanel(new BorderLayout());
-        errorPanel.setBorder(BorderFactory.createTitledBorder("Errores Léxicos:"));
+        errorPanel.setBorder(BorderFactory.createTitledBorder("Errores:"));
         errorPanel.setBackground(mainBackground);
 
         JTextArea errorTextArea = new JTextArea();
@@ -130,46 +130,43 @@ public class Interfaz extends JFrame {
         JButton analyzeBtn = createStyledButton("Analizar");
         JButton clearBtn = createStyledButton("Borrar");
 
-
         // Acción botón Analizar
         analyzeBtn.addActionListener(e -> {
-        // Limpiar la tabla de tokens y el área de errores antes de analizar de nuevo
-        tableModel.setRowCount(0);
-        errorTextArea.setText("");
-        
-        // Obtener el texto ingresado por el usuario en el área de entrada
-        String code = inputArea.getText();
+            // Limpiar la tabla de tokens y el área de errores antes de analizar de nuevo
+            tableModel.setRowCount(0);
+            errorTextArea.setText("");
 
-        // Verificar que el usuario haya escrito algo
-        if (!code.isEmpty()) {
-            // Llamar al lexer para obtener la lista de tokens del código ingresado
-            List<Token> tokens = lexer.analizar(code);
-            
-            // Mostrar los tokens en la tabla de la interfaz
-            for (Token token : tokens) {
-                tableModel.addRow(new Object[] {
-                    token.getLexema(),                // El texto original del token
-                    token.getTipo(),                  // El tipo de token (Número, Operador, etc.)
-                    "Línea: " + token.getLinea() + ", Col: " + token.getColumna() // Posición en el código
-                });
-            }
+            // Obtener el texto ingresado por el usuario en el área de entrada
+            String code = inputArea.getText();
 
-            // Intentar analizar la sintaxis usando el parser
-            try {
+            // Verificar que el usuario haya escrito algo
+            if (!code.isEmpty()) {
+                // Llamar al lexer para obtener la lista de tokens del código ingresado
+                List<Token> tokens = lexer.analizar(code);
+
+                // Mostrar los tokens en la tabla de la interfaz
+                for (Token token : tokens) {
+                    tableModel.addRow(new Object[] {
+                            token.getLexema(), // El texto original del token
+                            token.getTipo(), // El tipo de token (Número, Operador, etc.)
+                            "Línea: " + token.getLinea() // Posición en el código
+                    });
+                }
+
+                // Intentar analizar la sintaxis usando el parser
                 Parser parser = new Parser(tokens);
                 parser.parse(); // Aquí se revisa la sintaxis, incluyendo la validación del ';'
-            } catch (SyntaxError ex) {
-                // Si hay error de sintaxis, mostrar el mensaje con línea y columna en el área de errores
-                errorTextArea.append("Error: " + ex.getMessage() + 
-                        " (Línea " + ex.getToken().getLinea() + 
-                        ", Col " + ex.getToken().getColumna() + ")\n");
-            }
-        } else {
-            // Si el campo está vacío, mostrar advertencia al usuario
-            JOptionPane.showMessageDialog(this, "Escribe algo antes de analizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-        }
-    });
+                List<SyntaxError> errores = parser.getErrores();
 
+                for (SyntaxError error : errores) {
+                    errorTextArea.append(error.getError() + "\n");
+                }
+            } else {
+                // Si el campo está vacío, mostrar advertencia al usuario
+                JOptionPane.showMessageDialog(this, "Escribe algo antes de analizar.", "Advertencia",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        });
 
         // Acción botón Borrar
         clearBtn.addActionListener(e -> {
@@ -236,36 +233,37 @@ public class Interfaz extends JFrame {
      // Variables declaration - do not modify//GEN-BEGIN:variables
      // End of variables declaration//GEN-END:variables
 
-
-
     /**
-     * Método para dividir una lista de tokens en múltiples sublistas, 
-     * separando cada una por el token de punto y coma ';'. No se si seria de utilizada mucho ya que es para usar varias sentencias
+     * Método para dividir una lista de tokens en múltiples sublistas,
+     * separando cada una por el token de punto y coma ';'. No se si seria de
+     * utilizada mucho ya que es para usar varias sentencias
      *
      * 
      * @param tokens lista completa de tokens generada por el lexer
-     * @return lista de listas de tokens, donde cada sublista representa una sentencia completa
+     * @return lista de listas de tokens, donde cada sublista representa una
+     *         sentencia completa
      */
     private List<List<Token>> splitTokensBySemicolon(List<Token> tokens) {
         List<List<Token>> statements = new ArrayList<>(); // Lista final de sentencias separadas
         List<Token> current = new ArrayList<>(); // Lista temporal para almacenar tokens de la sentencia actual
-        
+
         // Recorrer todos los tokens
         for (Token token : tokens) {
             current.add(token); // Agregar token a la sentencia actual
-            
+
             // Si el token es un punto y coma, significa que la sentencia actual terminó
             if (token.getTipo() == TokenType.SEMICOLON) {
                 statements.add(current); // Añadir la sentencia completa a la lista de sentencias
                 current = new ArrayList<>(); // Empezar a guardar tokens para la siguiente sentencia
             }
         }
-        
-        // Si quedan tokens que no terminan con punto y coma, agregarlos también como una sentencia
+
+        // Si quedan tokens que no terminan con punto y coma, agregarlos también como
+        // una sentencia
         if (!current.isEmpty()) {
             statements.add(current);
         }
-        
+
         return statements; // Devolver lista de sentencias separadas por ';'
     }
 

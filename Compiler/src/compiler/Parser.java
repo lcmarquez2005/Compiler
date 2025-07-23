@@ -22,6 +22,7 @@ public class Parser {
         this.tokens = tokens;
         this.current = 0; // Inicia en el primer token que es el 0 como de 2+2 serua el 2
         this.errores = new ArrayList<>();
+        // TODO tambien deberiamos hacer que haga el parseo apenas se instancie
     }
 
     /**
@@ -47,7 +48,6 @@ public class Parser {
         }
 
         // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
-        // inesperado
         if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
             errores.add(new SyntaxError("Paréntesis izquierdo faltante", getCurrent()));
         }
@@ -56,11 +56,6 @@ public class Parser {
         if (match(TokenType.SEMICOLON)) {
             // Correcto, continúa
         } else {
-            // Si no hay ';' lanza error
-            // if (current == size()) {
-            //
-            // System.out.println("sex");
-            // }
             errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
         }
 
@@ -68,7 +63,7 @@ public class Parser {
         if (!isAtEnd()) {
             if ((current - 1) != 0) {
                 if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
-                    errores.add(new SyntaxError("Token inesperado después de ';': '", getCurrent()));
+                    errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
                 }
             }
         }
@@ -130,7 +125,7 @@ public class Parser {
                             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
                             tokens.get(current).getTipo() == TokenType.DIVISION ||
                             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
+                errores.add(new SyntaxError("Operadores consecutivos no permitidos: ", operador, tokens.get(current)));
             }
 
             factor(); // Analiza el siguiente factor
@@ -165,7 +160,7 @@ public class Parser {
         } else if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
             current++;
         } else {
-            errores.add(new SyntaxError("Factor inválido: '", token));
+            errores.add(new SyntaxError("Factor inválido: ", token));
         }
     }
 
@@ -191,6 +186,15 @@ public class Parser {
             return true;
         }
         return false;
+    }
+
+    /*
+    *
+    *
+    *
+    */
+    public List<SyntaxError> getErrores() {
+        return this.errores;
     }
 
     /**

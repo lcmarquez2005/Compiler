@@ -43,15 +43,15 @@ public class SyntaxError {
         return token;
     }
 
-    public String construirMensaje() {
+    public String getError() {
         if (this.token != null) {
             if (this.token2 == null) {
-                return message + " Token: " + token.getLexema() + " Linea: " + token.getLinea();
+                return "Error (Linea " + token.getLinea() + ") -> " + message + " Token: " + token.getLexema();
             }
-            return message + " Token: " + token.getLexema() + token.getLinea() + " Token2: " + token.getLexema()
-                    + " Linea: " + token.getLinea();
+            return "Error en Linea " + token.getLinea() + message + " Token: " + token.getLexema() + ", Token2: "
+                    + token.getLexema();
         }
-        return message;
+        return "Error:" + message;
 
     }
 }
