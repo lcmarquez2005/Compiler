@@ -21,86 +21,88 @@ public class Parser {
     }
 
     public void parse() throws SyntaxError {
-    if (match(TokenType.IDENTIFICADOR)) {
-        // Puede ser una asignación si sigue un '='
-        if (match(TokenType.ASIGNACION)) {
-            E(); // Analiza expresión a la derecha de la asignación
+        if (match(TokenType.IDENTIFICADOR)) {
+            // Puede ser una asignación si sigue un '='
+            if (match(TokenType.ASIGNACION)) {
+                E(); // Analiza expresión a la derecha de la asignación
+            } else {
+                throw new SyntaxError("Se esperaba '=' después del identificador", peek());
+            }
         } else {
-            throw new SyntaxError("Se esperaba '=' después del identificador", peek());
+            // No empieza con identificador, puede ser solo una expresión
+            E();
         }
-    } else {
-        // No empieza con identificador, puede ser solo una expresión
-        E();
+
+        // Validar punto y coma al final
+        if (match(TokenType.SEMICOLON)) {
+            // OK
+        } else {
+            throw new SyntaxError("Se esperaba ';' al final de la sentencia", peek());
+        }
+
+        // No deben sobrar tokens
+        // pero si puede haber mas tokens en otra linea
+        if (!isAtEnd()) {
+            if ((current - 1) != 0) {
+                if (this.tokens.get(current).getLinea() == this.tokens.get(current - 1).getLinea()) {
+
+                    throw new SyntaxError("Token inesperado después de ';': '" +
+                            peek().getLexema() + "'", peek());
+                }
+            }
+        }
     }
-
-    // Validar punto y coma al final
-    if (match(TokenType.SEMICOLON)) {
-        // OK
-    } else {
-        throw new SyntaxError("Se esperaba ';' al final de la sentencia", peek());
-    }
-
-    // No deben sobrar tokens
-    if (!isAtEnd()) {
-        throw new SyntaxError("Token inesperado después de ';': '" +
-                peek().getLexema() + "'", peek());
-    }
-}
-
-
 
     private void E() throws SyntaxError {
-    T();
-    while (current < tokens.size() &&
-           (tokens.get(current).getTipo() == TokenType.PLUS ||
-            tokens.get(current).getTipo() == TokenType.MINUS)) {
-
-        Token operador = tokens.get(current);
-        current++;
-
-        if (current < tokens.size() &&
-            (tokens.get(current).getTipo() == TokenType.PLUS ||
-             tokens.get(current).getTipo() == TokenType.MINUS ||
-             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-             tokens.get(current).getTipo() == TokenType.DIVISION ||
-             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-            throw new SyntaxError("Operadores consecutivos no permitidos: '" +
-                operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
-        }
-
         T();
-    }
-}
+        while (current < tokens.size() &&
+                (tokens.get(current).getTipo() == TokenType.PLUS ||
+                        tokens.get(current).getTipo() == TokenType.MINUS)) {
 
+            Token operador = tokens.get(current);
+            current++;
+
+            if (current < tokens.size() &&
+                    (tokens.get(current).getTipo() == TokenType.PLUS ||
+                            tokens.get(current).getTipo() == TokenType.MINUS ||
+                            tokens.get(current).getTipo() == TokenType.ASTERISCO ||
+                            tokens.get(current).getTipo() == TokenType.DIVISION ||
+                            tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
+                throw new SyntaxError("Operadores consecutivos no permitidos: '" +
+                        operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
+            }
+
+            T();
+        }
+    }
 
     private void T() throws SyntaxError {
-    F();
-    while (current < tokens.size() &&
-           (tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-            tokens.get(current).getTipo() == TokenType.DIVISION)) {
-
-        Token operador = tokens.get(current);
-
-        if (tokens.get(current).getTipo() == TokenType.DIVISION) {
-            checkDivisionByZero();
-        }
-
-        current++;
-
-        if (current < tokens.size() &&
-            (tokens.get(current).getTipo() == TokenType.PLUS ||
-             tokens.get(current).getTipo() == TokenType.MINUS ||
-             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-             tokens.get(current).getTipo() == TokenType.DIVISION ||
-             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-            throw new SyntaxError("Operadores consecutivos no permitidos: '" +
-                operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
-        }
-
         F();
-    }
-}
+        while (current < tokens.size() &&
+                (tokens.get(current).getTipo() == TokenType.ASTERISCO ||
+                        tokens.get(current).getTipo() == TokenType.DIVISION)) {
 
+            Token operador = tokens.get(current);
+
+            if (tokens.get(current).getTipo() == TokenType.DIVISION) {
+                checkDivisionByZero();
+            }
+
+            current++;
+
+            if (current < tokens.size() &&
+                    (tokens.get(current).getTipo() == TokenType.PLUS ||
+                            tokens.get(current).getTipo() == TokenType.MINUS ||
+                            tokens.get(current).getTipo() == TokenType.ASTERISCO ||
+                            tokens.get(current).getTipo() == TokenType.DIVISION ||
+                            tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
+                throw new SyntaxError("Operadores consecutivos no permitidos: '" +
+                        operador.getLexema() + tokens.get(current).getLexema() + "'", tokens.get(current));
+            }
+
+            F();
+        }
+    }
 
     private void F() throws SyntaxError {
         if (current >= tokens.size()) {
@@ -129,33 +131,35 @@ public class Parser {
             throw new SyntaxError("División por cero", tokens.get(current + 1));
         }
     }
+
     private boolean match(TokenType tipo) {
-    if (check(tipo)) {
-        advance();
-        return true;
+        if (check(tipo)) {
+            advance();
+            return true;
+        }
+        return false;
     }
-    return false;
-}
 
-private boolean check(TokenType tipo) {
-    return !isAtEnd() && peek().getTipo() == tipo;
-}
+    private boolean check(TokenType tipo) {
+        return !isAtEnd() && peek().getTipo() == tipo;
+    }
 
-private Token advance() {
-    if (!isAtEnd()) current++;
-    return previous();
-}
+    private Token advance() {
+        if (!isAtEnd())
+            current++;
+        return previous();
+    }
 
-private boolean isAtEnd() {
-    return current >= tokens.size();
-}
+    private boolean isAtEnd() {
+        return current >= tokens.size();
+    }
 
-private Token peek() {
-    return tokens.get(current);
-}
+    private Token peek() {
+        return tokens.get(current);
+    }
 
-private Token previous() {
-    return tokens.get(current - 1);
-}
+    private Token previous() {
+        return tokens.get(current - 1);
+    }
 
 }
