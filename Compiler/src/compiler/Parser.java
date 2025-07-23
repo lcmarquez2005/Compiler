@@ -37,7 +37,7 @@ public void parse() throws SyntaxError {
         E();
     }
 
-    // Antes de buscar el ';', verificamos si el token actual es un PAR_DER inesperado
+    // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER inesperado
     if (!isAtEnd() && peek().getTipo() == TokenType.PAR_DER) {
         throw new SyntaxError("Paréntesis izquierdo faltante", peek());
     }
