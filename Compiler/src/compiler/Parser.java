@@ -33,37 +33,39 @@ public class Parser {
     // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones
     // como X = 2+2*(4+7)
     public void parse() {
-        // Si la expresión inicia con un identificador, puede ser una asignación
-        if (match(TokenType.IDENTIFICADOR)) {
-            // Espera que después del identificador venga un '=' para asignar
-            if (match(TokenType.ASIGNACION)) {
-                expression(); // Analiza la expresión a la derecha del '='
+        while (!isAtEnd()) {
+            // Si la expresión inicia con un identificador, puede ser una asignación
+            if (match(TokenType.IDENTIFICADOR)) {
+                // Espera que después del identificador venga un '=' para asignar
+                if (match(TokenType.ASIGNACION)) {
+                    expression(); // Analiza la expresión a la derecha del '='
+                } else {
+                    // Si no hay '=', lanza error específico
+                    errores.add(new SyntaxError("Se esperaba '=' despues del identificador", tokens.get(current)));
+                }
             } else {
-                // Si no hay '=', lanza error específico
-                errores.add(new SyntaxError("Se esperaba '=' despues del identificador", tokens.get(current)));
+                // Si no inicia con identificador, analiza directamente una expresión
+                expression();
             }
-        } else {
-            // Si no inicia con identificador, analiza directamente una expresión
-            expression();
-        }
 
-        // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
-        if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
-            errores.add(new SyntaxError("Paréntesis izquierdo faltante", getCurrent()));
-        }
+            // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
+            if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
+                errores.add(new SyntaxError("Paréntesis izquierdo faltante", getCurrent()));
+            }
 
-        // Luego espera que la sentencia termine con un punto y coma ';'
-        if (match(TokenType.SEMICOLON)) {
-            // Correcto, continúa
-        } else {
-            errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
-        }
+            // Luego espera que la sentencia termine con un punto y coma ';'
+            if (match(TokenType.SEMICOLON)) {
+                // Correcto, continúa
+            } else {
+                errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
+            }
 
-        // El resto sigue igual
-        if (!isAtEnd()) {
-            if ((current - 1) != 0) {
-                if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
-                    errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
+            // El resto sigue igual
+            if (!isAtEnd()) {
+                if ((current - 1) != 0) {
+                    if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
+                        errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
+                    }
                 }
             }
         }
