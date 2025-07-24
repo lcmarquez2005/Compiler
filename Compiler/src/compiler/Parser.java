@@ -1,8 +1,8 @@
 // Parser.java
 package compiler;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Esta clase Parser analiza una lista de tokens y verifica su sintaxis.
@@ -210,7 +210,12 @@ public class Parser {
      * de manera que no saltaran miles de errores solo por un unico error
      */
     private void saltoSeguro() {
-        while (getCurrent().getTipo() == TokenType.SEMICOLON) {
+    // Mientras no se haya llegado al final y el token actual no sea un punto y coma, por lo que sigue avanzando
+        while (!isAtEnd() && getCurrent().getTipo() != TokenType.SEMICOLON) {
+            advance();
+        }
+    // Si termino el while y aún hay tokens (estamos en el punto y coma). Se avanza una vez más para pasarlo y no quedarse estancado en el
+        if (!isAtEnd()) {
             advance();
         }
     }
