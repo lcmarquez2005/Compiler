@@ -33,16 +33,18 @@ public class Parser {
     // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones
     // como X = 2+2*(4+7)
     public void parse() {
-        while (!isAtEnd()) {
+        while (!isAtEnd() && errores.isEmpty()) {
             // Si la expresión inicia con un identificador, puede ser una asignación
             if (match(TokenType.IDENTIFICADOR)) {
                 // Espera que después del identificador venga un '=' para asignar
                 if (match(TokenType.ASIGNACION)) {
                     expression(); // Analiza la expresión a la derecha del '='
-                } else {
-                    // Si no hay '=', lanza error específico
-                    errores.add(new SyntaxError("Se esperaba '=' despues del identificador", tokens.get(current)));
                 }
+                // else {
+                // // Si no hay '=', lanza error específico
+                // errores.add(new SyntaxError("Se esperaba '=' despues del identificador",
+                // tokens.get(current)));
+                // }
             } else {
                 // Si no inicia con identificador, analiza directamente una expresión
                 expression();
@@ -50,7 +52,9 @@ public class Parser {
 
             // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
             if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
-                errores.add(new SyntaxError("Paréntesis izquierdo faltante", getCurrent()));
+                errores.add(new SyntaxError("Paréntesis izquierdo faltante", null));
+                saltoSeguro();
+                continue;
             }
 
             // Luego espera que la sentencia termine con un punto y coma ';'
@@ -58,6 +62,8 @@ public class Parser {
                 // Correcto, continúa
             } else {
                 errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
+                saltoSeguro();
+                continue;
             }
 
             // El resto sigue igual
@@ -197,6 +203,16 @@ public class Parser {
     */
     public List<SyntaxError> getErrores() {
         return this.errores;
+    }
+
+    /*
+     * Metodo que me sirve para saltar hasta el proximo ; cuando hay un error
+     * de manera que no saltaran miles de errores solo por un unico error
+     */
+    private void saltoSeguro() {
+        while (getCurrent().getTipo() == TokenType.SEMICOLON) {
+            advance();
+        }
     }
 
     /**
