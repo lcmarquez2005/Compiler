@@ -172,6 +172,7 @@ public class Interfaz extends JFrame {
         clearBtn.addActionListener(e -> {
             inputArea.setText("");
             tableModel.setRowCount(0);
+            errorTextArea.setText("");
         });
 
         buttonPanel.add(analyzeBtn);

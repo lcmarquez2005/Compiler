@@ -48,10 +48,11 @@ public class SyntaxError {
             if (this.token2 == null) {
                 return "Error (Linea " + token.getLinea() + ") -> " + message + " Token: " + token.getLexema();
             }
-            return "Error en Linea " + token.getLinea() + message + " Token: " + token.getLexema() + ", Token2: "
+            return "Error en (Linea " + token.getLinea() + ") ->" + message + " Token: " + token.getLexema()
+                    + ", Token2: "
                     + token.getLexema();
         }
-        return "Error:" + message;
+        return "Error ->" + message;
 
     }
 }
