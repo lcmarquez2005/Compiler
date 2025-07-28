@@ -27,8 +27,11 @@ public class Parser {
 
     /**
      * Método principal para iniciar el análisis sintáctico.
-     * Llena la lista de SyntaxError si encuentra algún error.
+     * Lanza SyntaxError si encuentra algún error.
      */
+
+    // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones
+    // como X = 2+2*(4+7)
     public void parse() {
         while (!isAtEnd() && errores.isEmpty()) {
             // Si la expresión inicia con un identificador, puede ser una asignación
@@ -37,6 +40,11 @@ public class Parser {
                 if (match(TokenType.ASIGNACION)) {
                     expression(); // Analiza la expresión a la derecha del '='
                 }
+                // else {
+                // // Si no hay '=', lanza error específico
+                // errores.add(new SyntaxError("Se esperaba '=' despues del identificador",
+                // tokens.get(current)));
+                // }
             } else {
                 // Si no inicia con identificador, analiza directamente una expresión
                 expression();
@@ -50,7 +58,9 @@ public class Parser {
             }
 
             // Luego espera que la sentencia termine con un punto y coma ';'
-            if (!match(TokenType.SEMICOLON)) {
+            if (match(TokenType.SEMICOLON)) {
+                // Correcto, continúa
+            } else {
                 errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
                 saltoSeguro();
                 continue;
@@ -89,7 +99,6 @@ public class Parser {
                             tokens.get(current).getTipo() == TokenType.DIVISION ||
                             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
                 errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
-
             }
 
             term(); // Analiza el siguiente término después del operador
@@ -141,7 +150,6 @@ public class Parser {
     private void factor() {
         if (current >= tokens.size()) {
             errores.add(new SyntaxError("Se esperaba un factor", getPrevious()));
-            return;
         }
 
         Token token = getCurrent();
@@ -149,33 +157,18 @@ public class Parser {
 
         if (tipo == TokenType.PAR_DER) {
             errores.add(new SyntaxError("Paréntesis izquierdo faltante", token));
-            current++; // Para evitar loop infinito si no se consume
-            return;
-        }
-
-        if (tipo == TokenType.PAR_IZQ) {
+        } else if (tipo == TokenType.PAR_IZQ) {
             current++;
             expression();
 
-            if (current < tokens.size() && tokens.get(current).getTipo() == TokenType.PAR_DER) {
-                errores.add(new SyntaxError("Se esperaba una expresión entre paréntesis", tokens.get(current)));
-                current++; // Consumimos el ')'
-                return;
-            }
             if (current >= tokens.size() || tokens.get(current).getTipo() != TokenType.PAR_DER) {
                 errores.add(new SyntaxError("Paréntesis derecho faltante", getPrevious()));
-            } else {
-                current++; // Consumir el PAR_DER
             }
-            return;
-        }
-
-        if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
+            current++;
+        } else if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
             current++;
         } else {
-            errores.add(new SyntaxError("Factor inválido", token));
-            return;
-            // current++; // Consumir token inválido para continuar análisis
+            errores.add(new SyntaxError("Factor inválido: ", token));
         }
     }
 
@@ -217,13 +210,11 @@ public class Parser {
      * de manera que no saltaran miles de errores solo por un unico error
      */
     private void saltoSeguro() {
-        // Mientras no se haya llegado al final y el token actual no sea un punto y
-        // coma, por lo que sigue avanzando
+    // Mientras no se haya llegado al final y el token actual no sea un punto y coma, por lo que sigue avanzando
         while (!isAtEnd() && getCurrent().getTipo() != TokenType.SEMICOLON) {
             advance();
         }
-        // Si termino el while y aún hay tokens (estamos en el punto y coma). Se avanza
-        // una vez más para pasarlo y no quedarse estancado en el
+    // Si termino el while y aún hay tokens (estamos en el punto y coma). Se avanza una vez más para pasarlo y no quedarse estancado en el
         if (!isAtEnd()) {
             advance();
         }
