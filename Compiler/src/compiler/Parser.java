@@ -40,11 +40,6 @@ public class Parser {
                 if (match(TokenType.ASIGNACION)) {
                     expression(); // Analiza la expresión a la derecha del '='
                 }
-                // else {
-                // // Si no hay '=', lanza error específico
-                // errores.add(new SyntaxError("Se esperaba '=' despues del identificador",
-                // tokens.get(current)));
-                // }
             } else {
                 // Si no inicia con identificador, analiza directamente una expresión
                 expression();
@@ -80,8 +75,8 @@ public class Parser {
     /**
      * Método que analiza una expresión que puede contener sumas y restas.
      */
-    private void expression() {
-        term(); // Analiza el término inicial
+    private ExprType expression() {
+        ExprType tipadoExpression = term(); // Analiza el término inicial
 
         // Mientras haya un operador + o -
         while (current < tokens.size() &&
@@ -101,43 +96,55 @@ public class Parser {
                 errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
             }
 
-            term(); // Analiza el siguiente término después del operador
+            ExprType siguiente = term(); // Analiza el siguiente término después del operador
+
+            if (tipadoExpression != siguiente) {
+                errores.add(new SyntaxError("Semantica Erronea: tipos no compatibles (" + tipadoExpression
+                        + " No Compatible con " + siguiente, operador));
+                tipadoExpression = ExprType.MIXED;
+            }
         }
+        return tipadoExpression;
     }
 
     /**
      * Método que analiza un término que puede contener multiplicaciones y
      * divisiones.
      */
-    private void term() {
-        factor(); // Analiza el factor inicial
+    private ExprType term() {
+        ExprType tipadoExpression = factor(); // Analiza el factor inicial
 
         // Mientras haya un operador * o / (Multiplicacion o División)
-        while (current < tokens.size() &&
-                (tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-                        tokens.get(current).getTipo() == TokenType.DIVISION)) {
+        while (!isAtEnd() &&
+                (getCurrent().getTipo() == TokenType.ASTERISCO ||
+                        getCurrent().getTipo() == TokenType.DIVISION)) {
 
-            Token operador = tokens.get(current);
+            Token operador = getCurrent();
 
+            current++; // Avanza al siguiente token (factor derecho)
             // Si es división, verifica división por cero
-            if (tokens.get(current).getTipo() == TokenType.DIVISION) {
+            if (operador.getTipo() == TokenType.DIVISION) {
                 checkDivisionByZero();
             }
 
-            current++; // Avanza al siguiente token (factor derecho)
-
             // Verifica que no haya operadores consecutivos inválidos
-            if (current < tokens.size() &&
+            if (!isAtEnd() &&
                     (tokens.get(current).getTipo() == TokenType.PLUS ||
                             tokens.get(current).getTipo() == TokenType.MINUS ||
                             tokens.get(current).getTipo() == TokenType.ASTERISCO ||
                             tokens.get(current).getTipo() == TokenType.DIVISION ||
                             tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                errores.add(new SyntaxError("Operadores consecutivos no permitidos: ", operador, tokens.get(current)));
+                errores.add(
+                        new SyntaxError("Operadores consecutivos no permitidos: xd", operador, tokens.get(current)));
             }
-
-            factor(); // Analiza el siguiente factor
+            ExprType siguiente = factor();
+            if (tipadoExpression != siguiente) {
+                errores.add(new SyntaxError("Semantica Erronea: tipos no compatibles " + tipadoExpression
+                        + "No compatible con " + siguiente, operador));
+                tipadoExpression = ExprType.MIXED;
+            }
         }
+        return tipadoExpression;
     }
 
     /**
@@ -147,19 +154,30 @@ public class Parser {
      * - Un identificador
      * - Una expresión entre paréntesis
      */
-    private void factor() {
-        if (current >= tokens.size()) {
+    private ExprType factor() {
+        ExprType tipadoExpression = ExprType.MIXED;
+        if (isAtEnd()) {
             errores.add(new SyntaxError("Se esperaba un factor", getPrevious()));
+            return tipadoExpression;
         }
 
         Token token = getCurrent();
         TokenType tipo = token.getTipo();
 
-        if (tipo == TokenType.PAR_DER) {
+        if (tipo == TokenType.NUMERO) {
+            // Ponemos el tipado a aritmetico
+            tipadoExpression = ExprType.ARITHMETIC;
+            advance();
+        } else if (tipo == TokenType.IDENTIFICADOR) {
+            // Ponemos el tipado a Algebraico
+            tipadoExpression = ExprType.ALGEBRAIC;
+            advance();
+        } else if (tipo == TokenType.PAR_DER) {
+
             errores.add(new SyntaxError("Paréntesis izquierdo faltante", token));
         } else if (tipo == TokenType.PAR_IZQ) {
             current++;
-            expression();
+            tipadoExpression = expression();
 
             if (current >= tokens.size() || tokens.get(current).getTipo() != TokenType.PAR_DER) {
                 errores.add(new SyntaxError("Paréntesis derecho faltante", getPrevious()));
@@ -169,7 +187,9 @@ public class Parser {
             current++;
         } else {
             errores.add(new SyntaxError("Factor inválido: ", token));
+            // tipadoExpression = ExprType.MIXED;
         }
+        return tipadoExpression;
     }
 
     /**
@@ -210,11 +230,13 @@ public class Parser {
      * de manera que no saltaran miles de errores solo por un unico error
      */
     private void saltoSeguro() {
-    // Mientras no se haya llegado al final y el token actual no sea un punto y coma, por lo que sigue avanzando
+        // Mientras no se haya llegado al final y el token actual no sea un punto y
+        // coma, por lo que sigue avanzando
         while (!isAtEnd() && getCurrent().getTipo() != TokenType.SEMICOLON) {
             advance();
         }
-    // Si termino el while y aún hay tokens (estamos en el punto y coma). Se avanza una vez más para pasarlo y no quedarse estancado en el
+        // Si termino el while y aún hay tokens (estamos en el punto y coma). Se avanza
+        // una vez más para pasarlo y no quedarse estancado en el
         if (!isAtEnd()) {
             advance();
         }
@@ -254,6 +276,9 @@ public class Parser {
      * Retorna el token anterior (último consumido).
      */
     private Token getPrevious() {
+        if (current == 0) {
+            return tokens.get(0);
+        }
         return tokens.get(current - 1);
     }
 
