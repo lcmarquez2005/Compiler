@@ -34,8 +34,15 @@ public class Parser {
     // como X = 2+2*(4+7)
     public void parse() {
         while (!isAtEnd() && errores.isEmpty()) {
+            // Verificar si hay Palabras Reservadas
+            // TODO Si el token actual es una palabra reservada, se lanza un error 
+            if (getCurrent().getTipo() == TokenType.ERROR){
+                errores.add(new SyntaxError("Palabra reservada no permitida: " + getCurrent().getLexema(), getCurrent()));
+                saltoSeguro();
+                continue;
+            }
             // Si la expresión inicia con un identificador, puede ser una asignación
-            if (match(TokenType.IDENTIFICADOR)) {
+            if (match(TokenType.IDENTIFICADOR ) || match(TokenType.PALABRAS_RESERVADAS)) {
                 // Espera que después del identificador venga un '=' para asignar
                 if (match(TokenType.ASIGNACION)) {
                     expression(); // Analiza la expresión a la derecha del '='
@@ -68,7 +75,9 @@ public class Parser {
                         errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
                     }
                 }
+             
             }
+            
         }
     }
 

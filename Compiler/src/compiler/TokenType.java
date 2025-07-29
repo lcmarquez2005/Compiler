@@ -11,5 +11,6 @@ public enum TokenType {
     IDENTIFICADOR, // Variables: a, b, x1
     ASIGNACION, // Variables: a, b, x1
     ERROR, // Símbolos no reconocidos: @, #
-    SEMICOLON // Signo de terminación ;
+    SEMICOLON, // Signo de terminación ;
+    PALABRAS_RESERVADAS;   // Palabras reservadas (agrupadas)
 }

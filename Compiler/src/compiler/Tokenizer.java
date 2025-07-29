@@ -5,6 +5,12 @@ import java.util.regex.*;
 
 public class Tokenizer {
 
+     // Conjunto de palabras reservadas
+    private static final Set<String> PALABRAS_RESERVADAS = Set.of(
+        "if", "else", "while", "for", "do", 
+        "break", "continue", "return", "function", "var"
+    );
+
     /**
      * Analiza una línea de texto y la convierte en una lista de tokens.
      * 
@@ -39,11 +45,15 @@ public class Tokenizer {
     private TokenType clasificar(String lexema) {
         if (lexema.matches("\\d+(\\.\\d+)?"))
             return TokenType.NUMERO;
-        if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*"))
-            return TokenType.IDENTIFICADOR;
-        if (lexema.equals(";")) {
+        if (lexema.matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+            if (PALABRAS_RESERVADAS.contains(lexema)) {
+            return TokenType.PALABRAS_RESERVADAS; // Si es una palabra reservada
+            }
+            return TokenType.ERROR;
+            }
+            if (lexema.equals(";")) {
             return TokenType.SEMICOLON;
-        }
+            }
 
         // Detectar operadores y paréntesis
         return switch (lexema) {
