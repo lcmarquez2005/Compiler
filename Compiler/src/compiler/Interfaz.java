@@ -157,10 +157,25 @@ public class Interfaz extends JFrame {
                 Parser parser = new Parser(tokens);
                 parser.parse(); // Aquí se revisa la sintaxis, incluyendo la validación del ';'
                 List<SyntaxError> errores = parser.getErrores();
+                List<String> resultados = parser.getResultados();
 
-                for (SyntaxError error : errores) {
-                    errorTextArea.append(error.getError() + "\n");
+                if (errores.isEmpty()) {
+
+                    String mensaje = "";
+                    int i = 0;
+                    for (String resultado : resultados) {
+                        i++;
+                        mensaje += "Linea " + i + " " + resultado + "\n";
+                    }
+
+                    JOptionPane.showMessageDialog(null, mensaje);
+                } else {
+
+                    for (SyntaxError error : errores) {
+                        errorTextArea.append(error.getError() + "\n");
+                    }
                 }
+
             } else {
                 // Si el campo está vacío, mostrar advertencia al usuario
                 JOptionPane.showMessageDialog(this, "Escribe algo antes de analizar.", "Advertencia",

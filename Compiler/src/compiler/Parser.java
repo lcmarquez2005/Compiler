@@ -13,13 +13,15 @@ import javax.swing.JOptionPane;
  * - No haya divisiones entre cero.
  * - No existan operadores consecutivos inválidos (como ++, *-).
  * - Todas las expresiones terminen con ';'.
- * Además, evalúa el resultado de las expresiones y soporta asignaciones a variables.
+ * Además, evalúa el resultado de las expresiones y soporta asignaciones a
+ * variables.
  */
 public class Parser {
     private final List<Token> tokens; // Lista de tokens a analizar
     private int current; // Índice actual del token que se está analizando en la linea
 
     private List<SyntaxError> errores;
+    private List<String> resultados;
 
     // Mapa para almacenar variables y sus valores numéricos
     private Map<String, Double> variables = new HashMap<>();
@@ -28,6 +30,7 @@ public class Parser {
         this.tokens = tokens;
         this.current = 0; // Inicia en el primer token que es el 0 como de 2+2 serua el 2
         this.errores = new ArrayList<>();
+        this.resultados = new ArrayList<>();
         // TODO tambien deberiamos hacer que haga el parseo apenas se instancie
     }
 
@@ -35,81 +38,79 @@ public class Parser {
      * Método principal para iniciar el análisis sintáctico.
      * Lanza SyntaxError si encuentra algún error.
      */
-   public void parse() {
-    while (!isAtEnd() && errores.isEmpty()) {
-        Token currentToken = getCurrent();
-        String lexema = currentToken.getLexema();
+    public void parse() {
+        while (!isAtEnd() && errores.isEmpty()) {
+            Token currentToken = getCurrent();
+            String lexema = currentToken.getLexema();
 
-        // Verificar si el token es ERROR
-        if (currentToken.getTipo() == TokenType.ERROR) {
-    // Si el lexema está en palabras reservadas válidas, no es error, solo procesar normal
-    if (Tokenizer.PALABRAS_RESERVADAS.contains(lexema)) {
-        // No hacer nada aquí, dejar que continúe el parseo normal
-        } else if (Tokenizer.PALABRAS_MAL_USADAS.contains(lexema)) {
-        errores.add(new SyntaxError("Posible palabra reservada mal usada o error de sintaxis: " + lexema, currentToken));
-        saltoSeguro();
-        continue;
-        } else {
-        errores.add(new SyntaxError("Palabra o símbolo no permitido: " + lexema, currentToken));
-        saltoSeguro();
-        continue;
-        }
-        }
+            // Verificar si el token es ERROR
+            if (currentToken.getTipo() == TokenType.ERROR) {
+                // Si el lexema está en palabras reservadas válidas, no es error, solo procesar
+                // normal
+                if (Tokenizer.PALABRAS_RESERVADAS.contains(lexema)) {
+                    // No hacer nada aquí, dejar que continúe el parseo normal
+                } else if (Tokenizer.PALABRAS_MAL_USADAS.contains(lexema)) {
+                    errores.add(new SyntaxError("Posible palabra reservada mal usada o error de sintaxis: " + lexema,
+                            currentToken));
+                    saltoSeguro();
+                    continue;
+                } else {
+                    errores.add(new SyntaxError("Palabra o símbolo no permitido: " + lexema, currentToken));
+                    saltoSeguro();
+                    continue;
+                }
+            }
 
-        double resultadoExpresion = 0;
+            double resultadoExpresion = 0;
 
-        // Si la expresión inicia con un identificador o palabra reservada, puede ser asignación
-        if (match(TokenType.IDENTIFICADOR)) {
-            String varName = getPrevious().getLexema();
-            if (match(TokenType.ASIGNACION)) {
-                resultadoExpresion = expression(); // Evalúa expresión derecha del '='
-                variables.put(varName, resultadoExpresion); // Guarda valor en variable
-                System.out.println(varName + " = " + resultadoExpresion);
+            // Si la expresión inicia con un identificador o palabra reservada, puede ser
+            // asignación
+            if (match(TokenType.IDENTIFICADOR)) {
+                String varName = getPrevious().getLexema();
+                if (match(TokenType.ASIGNACION)) {
+                    resultadoExpresion = expression(); // Evalúa expresión derecha del '='
+                    variables.put(varName, resultadoExpresion); // Guarda valor en variable
+                    System.out.println(varName + " = " + resultadoExpresion);
+                } else {
+                    // No es asignación, quizás solo un identificador solo o error
+                    errores.add(new SyntaxError("Si se quiere asignar valor agregar '=' después del identificador",
+                            currentToken));
+                    saltoSeguro();
+                    continue;
+                }
             } else {
-                // No es asignación, quizás solo un identificador solo o error
-                errores.add(new SyntaxError("Si se quiere asignar valor agregar '=' después del identificador", currentToken));
+                resultadoExpresion = expression();
+                if (errores.isEmpty()) {
+                    this.resultados.add("Resultado: " + resultadoExpresion);
+                }
+            }
+
+            // Verifica paréntesis izquierdo faltante
+            if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
+                errores.add(new SyntaxError("Paréntesis izquierdo faltante", null));
                 saltoSeguro();
                 continue;
             }
-            } else if (match(TokenType.PALABRAS_RESERVADAS)) {
-                resultadoExpresion = expression();
-                if (errores.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Resultado: " + resultadoExpresion);
-                }
+
+            // Espera que la sentencia termine con ';'
+            if (match(TokenType.SEMICOLON)) {
+                // Correcto, continúa
             } else {
-                resultadoExpresion = expression();
-                if (errores.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Resultado: " + resultadoExpresion);
-                }
+                errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
+                saltoSeguro();
+                continue;
             }
 
-
-        // Verifica paréntesis izquierdo faltante
-        if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
-            errores.add(new SyntaxError("Paréntesis izquierdo faltante", null));
-            saltoSeguro();
-            continue;
-        }
-
-        // Espera que la sentencia termine con ';'
-        if (match(TokenType.SEMICOLON)) {
-            // Correcto, continúa
-        } else {
-            errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
-            saltoSeguro();
-            continue;
-        }
-
-        // Detectar tokens inesperados tras ';' en la misma línea
-        if (!isAtEnd()) {
-            if ((current - 1) != 0) {
-                if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
-                    errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
+            // Detectar tokens inesperados tras ';' en la misma línea
+            if (!isAtEnd()) {
+                if ((current - 1) != 0) {
+                    if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
+                        errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
+                    }
                 }
             }
         }
     }
-}
 
     /**
      * Método que analiza una expresión que puede contener sumas y restas.
@@ -250,7 +251,6 @@ public class Parser {
         }
     }
 
-
     /**
      * Si el token actual coincide con el tipo esperado, consume el token y retorna
      * que es verdadero.
@@ -270,6 +270,10 @@ public class Parser {
     */
     public List<SyntaxError> getErrores() {
         return this.errores;
+    }
+
+    public List<String> getResultados() {
+        return this.resultados;
     }
 
     /*
