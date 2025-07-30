@@ -12,5 +12,6 @@ public enum TokenType {
     ASIGNACION, // Variables: a, b, x1
     ERROR, // Símbolos no reconocidos: @, #
     SEMICOLON, // Signo de terminación ;
-    PALABRAS_RESERVADAS;   // Palabras reservadas (agrupadas)
+    PALABRAS_RESERVADAS,   // Palabras reservadas (agrupadas)
+    PALABRAS_MAL_USADAS; //Palabras reservadas mal usadas como whole, wail, ent, estrin, strin
 }

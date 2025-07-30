@@ -1,8 +1,10 @@
-// Parser.java
 package compiler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import javax.swing.JOptionPane;
 
 /**
  * Esta clase Parser analiza una lista de tokens y verifica su sintaxis.
@@ -11,12 +13,16 @@ import java.util.List;
  * - No haya divisiones entre cero.
  * - No existan operadores consecutivos inválidos (como ++, *-).
  * - Todas las expresiones terminen con ';'.
+ * Además, evalúa el resultado de las expresiones y soporta asignaciones a variables.
  */
 public class Parser {
     private final List<Token> tokens; // Lista de tokens a analizar
     private int current; // Índice actual del token que se está analizando en la linea
 
     private List<SyntaxError> errores;
+
+    // Mapa para almacenar variables y sus valores numéricos
+    private Map<String, Double> variables = new HashMap<>();
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -29,63 +35,88 @@ public class Parser {
      * Método principal para iniciar el análisis sintáctico.
      * Lanza SyntaxError si encuentra algún error.
      */
+   public void parse() {
+    while (!isAtEnd() && errores.isEmpty()) {
+        Token currentToken = getCurrent();
+        String lexema = currentToken.getLexema();
 
-    // Esta parte no se si del todo dejarla ya que no siempre usamos expresiones
-    // como X = 2+2*(4+7)
-    public void parse() {
-        while (!isAtEnd() && errores.isEmpty()) {
-            // Verificar si hay Palabras Reservadas
-            // TODO Si el token actual es una palabra reservada, se lanza un error 
-            if (getCurrent().getTipo() == TokenType.ERROR){
-                errores.add(new SyntaxError("Palabra reservada no permitida: " + getCurrent().getLexema(), getCurrent()));
+        // Verificar si el token es ERROR
+        if (currentToken.getTipo() == TokenType.ERROR) {
+    // Si el lexema está en palabras reservadas válidas, no es error, solo procesar normal
+    if (Tokenizer.PALABRAS_RESERVADAS.contains(lexema)) {
+        // No hacer nada aquí, dejar que continúe el parseo normal
+        } else if (Tokenizer.PALABRAS_MAL_USADAS.contains(lexema)) {
+        errores.add(new SyntaxError("Posible palabra reservada mal usada o error de sintaxis: " + lexema, currentToken));
+        saltoSeguro();
+        continue;
+        } else {
+        errores.add(new SyntaxError("Palabra o símbolo no permitido: " + lexema, currentToken));
+        saltoSeguro();
+        continue;
+        }
+        }
+
+        double resultadoExpresion = 0;
+
+        // Si la expresión inicia con un identificador o palabra reservada, puede ser asignación
+        if (match(TokenType.IDENTIFICADOR)) {
+            String varName = getPrevious().getLexema();
+            if (match(TokenType.ASIGNACION)) {
+                resultadoExpresion = expression(); // Evalúa expresión derecha del '='
+                variables.put(varName, resultadoExpresion); // Guarda valor en variable
+                System.out.println(varName + " = " + resultadoExpresion);
+            } else {
+                // No es asignación, quizás solo un identificador solo o error
+                errores.add(new SyntaxError("Si se quiere asignar valor agregar '=' después del identificador", currentToken));
                 saltoSeguro();
                 continue;
             }
-            // Si la expresión inicia con un identificador, puede ser una asignación
-            if (match(TokenType.IDENTIFICADOR ) || match(TokenType.PALABRAS_RESERVADAS)) {
-                // Espera que después del identificador venga un '=' para asignar
-                if (match(TokenType.ASIGNACION)) {
-                    expression(); // Analiza la expresión a la derecha del '='
+            } else if (match(TokenType.PALABRAS_RESERVADAS)) {
+                resultadoExpresion = expression();
+                if (errores.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Resultado: " + resultadoExpresion);
                 }
             } else {
-                // Si no inicia con identificador, analiza directamente una expresión
-                expression();
-            }
-
-            // TODO Antes de buscar el ';', verificamos si el token actual es un PAR_DER
-            if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
-                errores.add(new SyntaxError("Paréntesis izquierdo faltante", null));
-                saltoSeguro();
-                continue;
-            }
-
-            // Luego espera que la sentencia termine con un punto y coma ';'
-            if (match(TokenType.SEMICOLON)) {
-                // Correcto, continúa
-            } else {
-                errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
-                saltoSeguro();
-                continue;
-            }
-
-            // El resto sigue igual
-            if (!isAtEnd()) {
-                if ((current - 1) != 0) {
-                    if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
-                        errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
-                    }
+                resultadoExpresion = expression();
+                if (errores.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Resultado: " + resultadoExpresion);
                 }
-             
             }
-            
+
+
+        // Verifica paréntesis izquierdo faltante
+        if (!isAtEnd() && getCurrent().getTipo() == TokenType.PAR_DER) {
+            errores.add(new SyntaxError("Paréntesis izquierdo faltante", null));
+            saltoSeguro();
+            continue;
+        }
+
+        // Espera que la sentencia termine con ';'
+        if (match(TokenType.SEMICOLON)) {
+            // Correcto, continúa
+        } else {
+            errores.add(new SyntaxError("Se esperaba ';' al final de la sentencia", getPrevious()));
+            saltoSeguro();
+            continue;
+        }
+
+        // Detectar tokens inesperados tras ';' en la misma línea
+        if (!isAtEnd()) {
+            if ((current - 1) != 0) {
+                if (this.tokens.get(current).getLinea() == this.getPrevious().getLinea()) {
+                    errores.add(new SyntaxError("Token inesperado después de ';': ", getCurrent()));
+                }
+            }
         }
     }
+}
 
     /**
      * Método que analiza una expresión que puede contener sumas y restas.
+     * Retorna el resultado evaluado como double.
      */
-    private ExprType expression() {
-        ExprType tipadoExpression = term(); // Analiza el término inicial
+    private double expression() {
+        double resultado = term(); // Analiza el término inicial
 
         // Mientras haya un operador + o -
         while (current < tokens.size() &&
@@ -95,33 +126,24 @@ public class Parser {
             Token operador = tokens.get(current); // Guarda operador actual
             current++; // Avanza al siguiente token
 
-            // Verifica que no haya operadores consecutivos inválidos
-            if (current < tokens.size() &&
-                    (tokens.get(current).getTipo() == TokenType.PLUS ||
-                            tokens.get(current).getTipo() == TokenType.MINUS ||
-                            tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-                            tokens.get(current).getTipo() == TokenType.DIVISION ||
-                            tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                errores.add(new SyntaxError("Operadores consecutivos no permitidos: '", operador, tokens.get(current)));
-            }
+            double siguiente = term(); // Evalúa el siguiente término después del operador
 
-            ExprType siguiente = term(); // Analiza el siguiente término después del operador
-
-            if (tipadoExpression != siguiente) {
-                errores.add(new SyntaxError("Semantica Erronea: tipos no compatibles (" + tipadoExpression
-                        + " No Compatible con " + siguiente, operador));
-                tipadoExpression = ExprType.MIXED;
+            if (operador.getTipo() == TokenType.PLUS) {
+                resultado += siguiente;
+            } else if (operador.getTipo() == TokenType.MINUS) {
+                resultado -= siguiente;
             }
         }
-        return tipadoExpression;
+        return resultado;
     }
 
     /**
      * Método que analiza un término que puede contener multiplicaciones y
      * divisiones.
+     * Retorna el resultado evaluado como double.
      */
-    private ExprType term() {
-        ExprType tipadoExpression = factor(); // Analiza el factor inicial
+    private double term() {
+        double resultado = factor(); // Analiza el factor inicial
 
         // Mientras haya un operador * o / (Multiplicacion o División)
         while (!isAtEnd() &&
@@ -136,69 +158,76 @@ public class Parser {
                 checkDivisionByZero();
             }
 
-            // Verifica que no haya operadores consecutivos inválidos
-            if (!isAtEnd() &&
-                    (tokens.get(current).getTipo() == TokenType.PLUS ||
-                            tokens.get(current).getTipo() == TokenType.MINUS ||
-                            tokens.get(current).getTipo() == TokenType.ASTERISCO ||
-                            tokens.get(current).getTipo() == TokenType.DIVISION ||
-                            tokens.get(current).getTipo() == TokenType.ASIGNACION)) {
-                errores.add(
-                        new SyntaxError("Operadores consecutivos no permitidos: xd", operador, tokens.get(current)));
-            }
-            ExprType siguiente = factor();
-            if (tipadoExpression != siguiente) {
-                errores.add(new SyntaxError("Semantica Erronea: tipos no compatibles " + tipadoExpression
-                        + "No compatible con " + siguiente, operador));
-                tipadoExpression = ExprType.MIXED;
+            double siguiente = factor();
+
+            if (operador.getTipo() == TokenType.ASTERISCO) {
+                resultado *= siguiente;
+            } else if (operador.getTipo() == TokenType.DIVISION) {
+                if (siguiente == 0) {
+                    errores.add(new SyntaxError("División por cero", operador));
+                    // Evitar excepción, devolver algún valor
+                    return 0;
+                }
+                resultado /= siguiente;
             }
         }
-        return tipadoExpression;
+        return resultado;
     }
 
     /**
      * Método que analiza un factor.
      * Un factor puede ser ya sea como:
      * - Un número
-     * - Un identificador
+     * - Un identificador (variable)
      * - Una expresión entre paréntesis
+     * Retorna el resultado evaluado como double.
      */
-    private ExprType factor() {
-        ExprType tipadoExpression = ExprType.MIXED;
+    private double factor() {
         if (isAtEnd()) {
             errores.add(new SyntaxError("Se esperaba un factor", getPrevious()));
-            return tipadoExpression;
+            return 0;
         }
 
         Token token = getCurrent();
         TokenType tipo = token.getTipo();
 
         if (tipo == TokenType.NUMERO) {
-            // Ponemos el tipado a aritmetico
-            tipadoExpression = ExprType.ARITHMETIC;
-            advance();
+            // Convierte el lexema a número double y devuelve
+            try {
+                double valor = Double.parseDouble(token.getLexema());
+                advance();
+                return valor;
+            } catch (NumberFormatException e) {
+                errores.add(new SyntaxError("Número inválido: " + token.getLexema(), token));
+                advance();
+                return 0;
+            }
         } else if (tipo == TokenType.IDENTIFICADOR) {
-            // Ponemos el tipado a Algebraico
-            tipadoExpression = ExprType.ALGEBRAIC;
+            String nombreVar = token.getLexema();
             advance();
+            if (!variables.containsKey(nombreVar)) {
+                errores.add(new SyntaxError("Variable no definida: " + nombreVar, token));
+                return 0;
+            }
+            return variables.get(nombreVar);
         } else if (tipo == TokenType.PAR_DER) {
-
             errores.add(new SyntaxError("Paréntesis izquierdo faltante", token));
+            return 0;
         } else if (tipo == TokenType.PAR_IZQ) {
             current++;
-            tipadoExpression = expression();
+            double resultado = expression();
 
             if (current >= tokens.size() || tokens.get(current).getTipo() != TokenType.PAR_DER) {
                 errores.add(new SyntaxError("Paréntesis derecho faltante", getPrevious()));
+            } else {
+                current++;
             }
-            current++;
-        } else if (tipo == TokenType.IDENTIFICADOR || tipo == TokenType.NUMERO) {
-            current++;
+            return resultado;
         } else {
             errores.add(new SyntaxError("Factor inválido: ", token));
-            // tipadoExpression = ExprType.MIXED;
+            advance();
+            return 0;
         }
-        return tipadoExpression;
     }
 
     /**
@@ -206,12 +235,21 @@ public class Parser {
      * Si es así, lanza un error de división por cero.
      */
     private void checkDivisionByZero() {
-        if (current + 1 < tokens.size() &&
-                tokens.get(current + 1).getTipo() == TokenType.NUMERO &&
-                tokens.get(current + 1).getLexema().equals("0")) {
-            errores.add(new SyntaxError("División por cero", tokens.get(current + 1)));
+        if (current < tokens.size()) {
+            Token siguiente = tokens.get(current);
+            if (siguiente.getTipo() == TokenType.NUMERO) {
+                try {
+                    double valor = Double.parseDouble(siguiente.getLexema());
+                    if (valor == 0.0) {
+                        errores.add(new SyntaxError("División por cero", siguiente));
+                    }
+                } catch (NumberFormatException e) {
+                    // No es un número válido, no hacemos nada
+                }
+            }
         }
     }
+
 
     /**
      * Si el token actual coincide con el tipo esperado, consume el token y retorna
