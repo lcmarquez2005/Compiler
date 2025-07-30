@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JOptionPane;
 
 /**
  * Esta clase Parser analiza una lista de tokens y verifica su sintaxis.
