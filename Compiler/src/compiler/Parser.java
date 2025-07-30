@@ -71,11 +71,6 @@ public class Parser {
                 saltoSeguro();
                 continue;
             }
-            } else if (match(TokenType.PALABRAS_RESERVADAS)) {
-                resultadoExpresion = expression();
-                if (errores.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Resultado: " + resultadoExpresion);
-                }
             } else {
                 resultadoExpresion = expression();
                 if (errores.isEmpty()) {
